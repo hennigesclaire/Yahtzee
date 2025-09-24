@@ -4,12 +4,23 @@
  */
 package com.mycompany.yahtzee;
 
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author joshu
  */
 public class YahtzeeDesign extends javax.swing.JFrame {
-
+    
+    File font_file = new File("TestFont.ttf");
+    Dice[] dice = {new Dice(), new Dice(), new Dice(), new Dice(), new Dice()};
+    
     /**
      * Creates new form YahtzeeDesign
      */
@@ -43,10 +54,15 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         jLayeredPane1.setBackground(new java.awt.Color(152, 152, 152));
 
         jButton1.setText("Roll");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jPanel1.setBackground(new java.awt.Color(175, 175, 175));
 
-        jButton5.setText("Die5");
+        jButton5.setText("5");
         jButton5.setMaximumSize(new java.awt.Dimension(65, 65));
         jButton5.setMinimumSize(new java.awt.Dimension(65, 65));
         jButton5.setPreferredSize(new java.awt.Dimension(65, 65));
@@ -56,22 +72,22 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             }
         });
 
-        jButton8.setText("Die3");
+        jButton8.setText("3");
         jButton8.setMaximumSize(new java.awt.Dimension(65, 65));
         jButton8.setMinimumSize(new java.awt.Dimension(65, 65));
         jButton8.setPreferredSize(new java.awt.Dimension(65, 65));
 
-        jButton9.setText("Die1");
+        jButton9.setText("1");
         jButton9.setMaximumSize(new java.awt.Dimension(65, 65));
         jButton9.setMinimumSize(new java.awt.Dimension(65, 65));
         jButton9.setPreferredSize(new java.awt.Dimension(65, 65));
 
-        jButton10.setText("Die4");
+        jButton10.setText("4");
         jButton10.setMaximumSize(new java.awt.Dimension(65, 65));
         jButton10.setMinimumSize(new java.awt.Dimension(65, 65));
         jButton10.setPreferredSize(new java.awt.Dimension(65, 65));
 
-        jButton11.setText("Die2");
+        jButton11.setText("2");
         jButton11.setMaximumSize(new java.awt.Dimension(65, 65));
         jButton11.setMinimumSize(new java.awt.Dimension(65, 65));
         jButton11.setPreferredSize(new java.awt.Dimension(65, 65));
@@ -167,6 +183,16 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton5ActionPerformed
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        javax.swing.JButton[] j = {jButton9, jButton11, jButton8, jButton10, jButton5};
+        Font f = getFont();
+        for (int i = 0; i < dice.length; i++) {
+            dice[i].roll();
+            j[i].setText(""+dice[i].getValue());
+            j[i].setFont(f.deriveFont(36f));
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -200,7 +226,20 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 new YahtzeeDesign().setVisible(true);
             }
         });
+        
     }
+    
+    @Override
+public Font getFont() {
+    try {
+        File fontFile = new File("src/main/resources/fonts/yahtzee-dice.ttf");
+        Font font = Font.createFont(Font.TRUETYPE_FONT, fontFile);
+        return font;
+    } catch (FontFormatException | IOException ex) {
+        Logger.getLogger(YahtzeeDesign.class.getName()).log(Level.SEVERE, null, ex);
+        return super.getFont();
+    }
+}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
