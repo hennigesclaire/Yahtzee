@@ -9,9 +9,7 @@ import java.util.*;
 
 public class EasyYahtzeeAI {
 
-    private final Random rand = new Random();
-
-    public Set<Integer> chooseDiceToKeep(int[] currentDice, ScoreCard scoreCard, int rollsLeft) {
+    private Set<Integer> chooseDiceToKeep(Dice[] currentDice, ScoreCard scoreCard, int rollsLeft) {
         Set<Integer> bestKeep = new HashSet<>();
         double bestScore = Double.NEGATIVE_INFINITY;
 
@@ -34,13 +32,13 @@ public class EasyYahtzeeAI {
 
     //Choose the best scoring category.
      
-    public Category chooseCategory(int[] finalDice, ScoreCard scoreCard) {
+    private Category chooseCategory(Dice[] finalDice, ScoreCard scoreCard) {
         Map<Category,Integer> possible = scoreCard.calculatePossibleScores(finalDice);
         Category best = null;
         int bestVal = -1;
 
         for (var entry : possible.entrySet()) {
-            if (!scoreCard.isCategoryTaken(entry.getKey()) && entry.getValue() > bestVal) {
+            if (!scoreCard.isCategoryFilled(entry.getKey()) && entry.getValue() > bestVal) {
                 bestVal = entry.getValue();
                 best = entry.getKey();
             }
@@ -52,7 +50,7 @@ public class EasyYahtzeeAI {
      Monte Carlo in action: This simulates many random completions of the turn
       and does the decision making. 
      */
-    private double estimateScore(int[] currentDice,
+    private double estimateScore(Dice[] currentDice,
                                  Set<Integer> keep,
                                  ScoreCard scoreCard,
                                  int rollsLeft) {
@@ -60,12 +58,12 @@ public class EasyYahtzeeAI {
         int total = 0;
 
         for (int t = 0; t < trials; t++) {
-            int[] diceCopy = Arrays.copyOf(currentDice, 5);
+            Dice[] diceCopy = Arrays.copyOf(currentDice, 5);
 
             // roll remaining dice
             for (int r = 0; r < rollsLeft; r++) {
                 for (int i = 0; i < 5; i++) {
-                    if (!keep.contains(i)) diceCopy[i] = rand.nextInt(6) + 1;
+                    if (!keep.contains(i)) diceCopy[i].roll();
                 }
             }
 
