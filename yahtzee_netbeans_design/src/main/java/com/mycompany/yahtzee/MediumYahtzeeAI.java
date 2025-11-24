@@ -10,16 +10,15 @@ import java.util.*;
  Considers game position and remaining categories
  */
 public class MediumYahtzeeAI {
-    private final Random rand = new Random();
     private static final int TRIALS = 1000; 
 
-    public Set<Integer> chooseDiceToKeep(int[] currentDice, ScoreCard scoreCard, int rollsLeft) {
+    public Set<Integer> chooseDiceToKeep(Dice[] currentDice, ScoreCard scoreCard, int rollsLeft) {
         // Quick filters to speed up decisions
         if (rollsLeft == 0) return new HashSet<>();
         
         // Filter 1: If we have Yahtzee, keep it!
         Set<Integer> yahtzeeKeep = checkForYahtzee(currentDice);
-        if (yahtzeeKeep != null && !scoreCard.isCategoryTaken(Category.YAHTZEE)) {
+        if (yahtzeeKeep != null && !scoreCard.isCategoryFilled(Category.YAHTZEE)) {
             return yahtzeeKeep;
         }
         
@@ -48,13 +47,13 @@ public class MediumYahtzeeAI {
         return bestKeep;
     }
 
-    public Category chooseCategory(int[] finalDice, ScoreCard scoreCard) {
+    public Category chooseCategory(Dice[] finalDice, ScoreCard scoreCard) {
         Map<Category, Integer> possible = scoreCard.calculatePossibleScores(finalDice);
         Category best = null;
         double bestValue = Double.NEGATIVE_INFINITY;
 
         for (var entry : possible.entrySet()) {
-            if (!scoreCard.isCategoryTaken(entry.getKey())) {
+            if (!scoreCard.isCategoryFilled(entry.getKey())) {
                 // Apply strategic value calculation
                 double strategicValue = calculateStrategicValue(
                     entry.getKey(), 
@@ -114,7 +113,7 @@ public class MediumYahtzeeAI {
         // Strategic Filter 3: Late game - grab points when available
         int remainingCategories = 0;
         for (Category c : Category.values()) {
-            if (!scoreCard.isCategoryTaken(c)) remainingCategories++;
+            if (!scoreCard.isCategoryFilled(c)) remainingCategories++;
         }
         
         if (remainingCategories <= 5) {
@@ -132,18 +131,18 @@ public class MediumYahtzeeAI {
         return value;
     }
 
-    private double estimateScore(int[] currentDice, Set<Integer> keep, 
+    private double estimateScore(Dice[] currentDice, Set<Integer> keep, 
                                 ScoreCard scoreCard, int rollsLeft) {
         int total = 0;
 
         for (int t = 0; t < TRIALS; t++) {
-            int[] diceCopy = Arrays.copyOf(currentDice, 5);
+            Dice[] diceCopy = Arrays.copyOf(currentDice, 5);
 
             // Simulate remaining rolls
             for (int r = 0; r < rollsLeft; r++) {
                 for (int i = 0; i < 5; i++) {
                     if (!keep.contains(i)) {
-                        diceCopy[i] = rand.nextInt(6) + 1;
+                        diceCopy[i].roll();
                     }
                 }
             }
@@ -153,7 +152,7 @@ public class MediumYahtzeeAI {
             double bestScore = 0;
             
             for (var entry : possible.entrySet()) {
-                if (!scoreCard.isCategoryTaken(entry.getKey())) {
+                if (!scoreCard.isCategoryFilled(entry.getKey())) {
                     double strategicValue = calculateStrategicValue(
                         entry.getKey(), 
                         entry.getValue(), 
@@ -170,9 +169,9 @@ public class MediumYahtzeeAI {
     }
 
     // Quick filters for common patterns
-    private Set<Integer> checkForYahtzee(int[] dice) {
+    private Set<Integer> checkForYahtzee(Dice[] dice) {
         int[] counts = new int[7];
-        for (int d : dice) counts[d]++;
+        for (Dice d : dice) counts[d.getValue()]++;
         
         for (int i = 1; i <= 6; i++) {
             if (counts[i] == 5) {
@@ -184,12 +183,12 @@ public class MediumYahtzeeAI {
         return null;
     }
 
-    private Set<Integer> checkForFourOfKind(int[] dice) {
+    private Set<Integer> checkForFourOfKind(Dice[] dice) {
         int[] counts = new int[7];
         Map<Integer, List<Integer>> positions = new HashMap<>();
         
         for (int i = 0; i < 5; i++) {
-            int val = dice[i];
+            int val = dice[i].getValue();
             counts[val]++;
             positions.computeIfAbsent(val, k -> new ArrayList<>()).add(i);
         }
@@ -215,7 +214,7 @@ public class MediumYahtzeeAI {
                            Category.FOURS, Category.FIVES, Category.SIXES};
         
         for (Category c : upper) {
-            if (scoreCard.isCategoryTaken(c)) {
+            if (scoreCard.isCategoryFilled(c)) {
                 // We need access to actual scores - for now estimate
                 total += 10; // This is a limitation without scoreCard.getScore()
             }
@@ -230,7 +229,7 @@ public class MediumYahtzeeAI {
                            Category.FOURS, Category.FIVES, Category.SIXES};
         
         for (Category c : upper) {
-            if (!scoreCard.isCategoryTaken(c)) count++;
+            if (!scoreCard.isCategoryFilled(c)) count++;
         }
         return count;
     }
