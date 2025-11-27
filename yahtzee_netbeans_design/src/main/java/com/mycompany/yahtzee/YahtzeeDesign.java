@@ -105,7 +105,6 @@ jTable1.addMouseListener(new MouseAdapter() {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(152, 152, 152));
-        setPreferredSize(new java.awt.Dimension(800, 800));
 
         jLayeredPane1.setBackground(new java.awt.Color(152, 152, 152));
 
