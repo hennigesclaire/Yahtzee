@@ -14,7 +14,7 @@ import java.util.Random;
 public class Yahtzee {
 
     public static void main(String[] args) {
-        YahtzeeDesign g = new YahtzeeDesign();
+        AIStartPage g = new AIStartPage();
         g.setVisible(true);
     }
 }
