@@ -13,7 +13,10 @@ public class AIStartPage extends javax.swing.JFrame {
     /**
      * Creates new form AIStartPage
      */
-    public AIStartPage() {
+    private TurnManager t;
+    
+    public AIStartPage(TurnManager t) {
+        this.t = t;
         initComponents();
     }
 
@@ -126,7 +129,9 @@ public class AIStartPage extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        YahtzeeDesign y = new YahtzeeDesign();
+        AIPlayer a = new AIPlayer(2);
+        t.addPlayer(a);
+        YahtzeeDesign y = new YahtzeeDesign(t);
         y.setVisible(true);
         dispose();
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -135,11 +140,13 @@ public class AIStartPage extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField1ActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-                YahtzeeDesign y = new YahtzeeDesign();
-                y.setVisible(true);
-                dispose();
-    }//GEN-LAST:event_jButton1ActionPerformed
+     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        AIPlayer a = new AIPlayer(1);
+        t.addPlayer(a);
+        YahtzeeDesign y = new YahtzeeDesign(t);
+        y.setVisible(true);
+        dispose();
+    }
 
     /**
      * @param args the command line arguments
@@ -169,9 +176,10 @@ public class AIStartPage extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
+        TurnManager t = new TurnManager();
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new AIStartPage().setVisible(true);
+                new AIStartPage(t).setVisible(true);
             }
         });
     }

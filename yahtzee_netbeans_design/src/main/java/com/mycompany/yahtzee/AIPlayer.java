@@ -8,19 +8,20 @@ package com.mycompany.yahtzee;
  *
  * @author joshu
  */
-public class AIPlayer {
+public class AIPlayer extends Player {
     
     private int difficulty;
-    Player p = new Player("AI Player");
     
     
     public AIPlayer(int d)
     {
-        this.setDifficulty(d);
+        super("AI Player");
+        this.difficulty = d;
     }
     
-    private void setDifficulty(int d)
+    private int getDifficulty()
     {
-        difficulty = d;
+        return difficulty;
     }
+    
 }

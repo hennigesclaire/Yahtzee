@@ -14,7 +14,12 @@ import java.util.Random;
 public class Yahtzee {
 
     public static void main(String[] args) {
-        AIStartPage g = new AIStartPage();
+        TurnManager t = new TurnManager();
+        Player p = new Player("Prototype");
+        t.addPlayer(p);
+        StartPage g = new StartPage(t);
         g.setVisible(true);
+        
+        
     }
 }

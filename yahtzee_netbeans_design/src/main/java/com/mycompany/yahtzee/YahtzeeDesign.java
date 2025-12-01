@@ -38,7 +38,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private static final int MAX_ROLLS = 3;
     private boolean turnActive = true;
     private Category pendingCategory = null;
-
+    private TurnManager t;
 
 
 
@@ -46,7 +46,8 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     /**
      * Creates new form YahtzeeDesign
      */
-    public YahtzeeDesign() {
+    public YahtzeeDesign(TurnManager t) {
+        this.t = t;
         initComponents();
         scoreCard = new ScoreCard();
         scoreModel = new ScoreCardTableModel(scoreCard);
@@ -407,11 +408,11 @@ jTable1.addMouseListener(new MouseAdapter() {
             java.util.logging.Logger.getLogger(YahtzeeDesign.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
+        TurnManager t = new TurnManager();
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new YahtzeeDesign().setVisible(true);
+                new YahtzeeDesign(t).setVisible(true);
             }
         });
         
