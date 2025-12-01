@@ -31,7 +31,10 @@ public class Player {
         }
         return ds;
     }
-    
+    public void resetTurn(){
+        rolls = 3; 
+        keptDice = new boolean[5];
+    }
     public ScoreCard getScore()
     {
         return scores;
@@ -41,4 +44,16 @@ public class Player {
     {
         return name;
     }
+    public int getRollsLeft(){
+        return rolls;
+    }
+    public void useRoll(){
+        if (rolls >0) rolls--;
+    }
+    public boolean[] keptDice(){
+        return keptDice;
+    }
+   public ScoreCard getScoreCard(){
+       return scores;
+   }
 }

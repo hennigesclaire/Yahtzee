@@ -15,6 +15,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 
 public class ScoreCellRenderer extends DefaultTableCellRenderer {
+
     private final ScoreCard scoreCard;
 
     public ScoreCellRenderer(ScoreCard scoreCard) {
@@ -25,10 +26,12 @@ public class ScoreCellRenderer extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
                                                    boolean isSelected, boolean hasFocus,
                                                    int row, int column) {
-        JLabel cell = (JLabel) super.getTableCellRendererComponent(
-            table, value, isSelected, hasFocus, row, column);
 
-        Category category = Category.values()[row];
+        JLabel cell = (JLabel) super.getTableCellRendererComponent(
+                table, value, isSelected, hasFocus, row, column);
+
+        ScoreCardTableModel model = (ScoreCardTableModel) table.getModel();
+        Category category = model.getCategoryAt(row);
 
         if (scoreCard.isCategoryFilled(category)) {
             cell.setFont(cell.getFont().deriveFont(Font.BOLD));
@@ -41,4 +44,3 @@ public class ScoreCellRenderer extends DefaultTableCellRenderer {
         return cell;
     }
 }
-

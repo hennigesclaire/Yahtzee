@@ -96,50 +96,71 @@ public class ScoreCard {
     }
 
 public void fillCategory(Category category, Dice[] dice) {
-    if (isCategoryFilled(category)) {
-        System.out.println(category + " is already filled!");
-        return;
+    if (category == Category.UPPER_SCORE ||
+        category == Category.BONUS ||
+        category == Category.LOWER_SCORE) {
+        return;  
     }
 
     Map<Category, Integer> possibleScores = calculatePossibleScores(dice);
-
     int score = possibleScores.get(category);
 
     scores.put(category, score);
 
-    System.out.println("Filled " + category + " with " + score + " points.");
+    updateTotals();
 }
 
-    public void FinalScoreCard(){
-        int i = 1;
-        for (Category c : scores.keySet()) {
-            Integer assigned = scores.get(c);
-            System.out.printf("%2d) %-20s \033[1m%d\033[0m\n", i, c, assigned);
-            i++;
-        }
-        int upper = scores.get(Category.ONES)
-           + scores.get(Category.TWOS)
-           + scores.get(Category.THREES)
-           + scores.get(Category.FOURS)
-           + scores.get(Category.FIVES)
-           + scores.get(Category.SIXES);
-        int lower = scores.get(Category.THREE_OF_A_KIND)
-           + scores.get(Category.FOUR_OF_A_KIND)
-           + scores.get(Category.FULL_HOUSE)
-           + scores.get(Category.SMALL_STRAIGHT)
-           + scores.get(Category.LARGE_STRAIGHT)
-           + scores.get(Category.EVEN)
-           + scores.get(Category.ODD)
-           + scores.get(Category.YAHTZEE)
-           + scores.get(Category.CHANCE);
-        int bonus = (upper >= 63) ? 35 : 0;
-        System.out.print("Upper Score:") ;
-        System.out.println(upper);
-        System.out.print("Bonus:") ;
-        System.out.println(bonus);
-        System.out.print("Lower Score:") ;
-        System.out.println(lower);
-    }
+
+public void updateTotals() {
+    int upper = 0;
+    upper += getOrZero(Category.ONES);
+    upper += getOrZero(Category.TWOS);
+    upper += getOrZero(Category.THREES);
+    upper += getOrZero(Category.FOURS);
+    upper += getOrZero(Category.FIVES);
+    upper += getOrZero(Category.SIXES);
+
+    int bonus = (upper >= 63) ? 35 : 0;
+
+    int lower = 0;
+    lower += getOrZero(Category.THREE_OF_A_KIND);
+    lower += getOrZero(Category.FOUR_OF_A_KIND);
+    lower += getOrZero(Category.FULL_HOUSE);
+    lower += getOrZero(Category.SMALL_STRAIGHT);
+    lower += getOrZero(Category.LARGE_STRAIGHT);
+    lower += getOrZero(Category.EVEN);
+    lower += getOrZero(Category.ODD);
+    lower += getOrZero(Category.YAHTZEE);
+    lower += getOrZero(Category.CHANCE);
+    
+    int total =0;
+    total += getOrZero(Category.ONES);
+    total += getOrZero(Category.TWOS);
+    total += getOrZero(Category.THREES);
+    total += getOrZero(Category.FOURS);
+    total += getOrZero(Category.FIVES);
+    total += getOrZero(Category.SIXES);
+    total += getOrZero(Category.THREE_OF_A_KIND);
+    total += getOrZero(Category.FOUR_OF_A_KIND);
+    total += getOrZero(Category.FULL_HOUSE);
+    total += getOrZero(Category.SMALL_STRAIGHT);
+    total += getOrZero(Category.LARGE_STRAIGHT);
+    total += getOrZero(Category.EVEN);
+    total += getOrZero(Category.ODD);
+    total += getOrZero(Category.YAHTZEE);
+    total += getOrZero(Category.CHANCE);
+    total += getOrZero(Category.BONUS);
+
+    scores.put(Category.UPPER_SCORE, upper);
+    scores.put(Category.BONUS, bonus);
+    scores.put(Category.LOWER_SCORE, lower);
+    scores.put(Category.TOTAL, total);
+}
+
+private int getOrZero(Category c) {
+    return scores.get(c) == null ? 0 : scores.get(c);
+}
+
 
     public void assignScore(int choice, Map<Category, Integer> possibleScores) {
         Category c = Category.values()[choice - 1];
@@ -164,6 +185,13 @@ public void fillCategory(Category category, Dice[] dice) {
  public boolean isCategoryFilled(Category c) {
     return scores.get(c) != null;  
 }
+public int getTotalScore() {
+    int upper = getOrZero(Category.UPPER_SCORE);
+    int bonus = getOrZero(Category.BONUS);
+    int lower = getOrZero(Category.LOWER_SCORE);
+    return upper + bonus + lower;
+}
+
 
 
 }

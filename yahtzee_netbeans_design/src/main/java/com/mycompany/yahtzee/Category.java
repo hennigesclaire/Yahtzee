@@ -2,12 +2,14 @@ package com.mycompany.yahtzee;
 
 
 public enum Category {
-     ONES,
+    ONES,
     TWOS,
     THREES,
     FOURS,
     FIVES,
     SIXES,
+    UPPER_SCORE,
+    BONUS,
     THREE_OF_A_KIND,
     FOUR_OF_A_KIND,
     FULL_HOUSE,
@@ -16,5 +18,7 @@ public enum Category {
     EVEN, 
     ODD,
     YAHTZEE,
-    CHANCE
+    CHANCE, 
+    LOWER_SCORE, 
+    TOTAL
 }

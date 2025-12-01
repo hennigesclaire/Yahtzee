@@ -9,17 +9,19 @@ import java.util.*;
 
 public class ScoreCardTableModel extends AbstractTableModel {
     private final ScoreCard scoreCard;
+    private final Category[] categories;
     private final String[] columnNames = {"Category", "Score"};
     private Map<Category, Integer> possibleScores = new HashMap<>();
 
 
-    public ScoreCardTableModel(ScoreCard scoreCard) {
+    public ScoreCardTableModel(ScoreCard scoreCard, Category[] categories) {
         this.scoreCard = scoreCard;
+        this.categories = categories;
     }
 
     @Override
     public int getRowCount() {
-        return Category.values().length;
+        return categories.length;
     }
 
     @Override
@@ -29,7 +31,7 @@ public class ScoreCardTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Category c = Category.values()[rowIndex];
+        Category c = categories[rowIndex];
         switch (columnIndex) {
             case 0: return c.name();
             case 1: 
@@ -42,7 +44,7 @@ public class ScoreCardTableModel extends AbstractTableModel {
         }
     }
     public Category getCategoryAt(int rowIndex) {
-        return Category.values()[rowIndex];
+        return categories[rowIndex];
     }
     @Override
     public String getColumnName(int column) {
