@@ -131,6 +131,8 @@ public class AIStartPage extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         AIPlayer a = new AIPlayer(2);
         t.addPlayer(a);
+        System.out.println(this.t.getCurrentPlayer());
+
         YahtzeeDesign y = new YahtzeeDesign(t);
         y.setVisible(true);
         dispose();

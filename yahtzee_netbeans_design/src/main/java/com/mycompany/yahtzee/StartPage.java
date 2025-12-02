@@ -73,6 +73,7 @@ public class StartPage extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+                System.out.println(this.t.getCurrentPlayer());
                 AIStartPage a = new AIStartPage(t);
                 a.setVisible(true);
                 dispose();        // TODO add your handling code here:

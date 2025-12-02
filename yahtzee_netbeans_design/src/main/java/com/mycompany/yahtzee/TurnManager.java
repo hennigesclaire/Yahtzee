@@ -16,7 +16,13 @@ public class TurnManager {
     
     public TurnManager()
     {
+        currentPlayer = null;
+    }
     
+    public Player getCurrentPlayer()
+    {
+        currentPlayer = this.playerList.first();
+        return this.currentPlayer;
     }
     
     public Player nextPlayer()
@@ -27,6 +33,8 @@ public class TurnManager {
     public void addPlayer(Player p)
     {
         this.playerList.addLast(p);
+        System.out.println(p);
+
     }
     
     public Player removePlayer(Player p)

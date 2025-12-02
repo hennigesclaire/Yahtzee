@@ -17,6 +17,7 @@ public class Yahtzee {
         TurnManager t = new TurnManager();
         Player p = new Player("Prototype");
         t.addPlayer(p);
+        System.out.println(t.getCurrentPlayer());
         StartPage g = new StartPage(t);
         g.setVisible(true);
         
