@@ -15,7 +15,10 @@ public class StartPage extends javax.swing.JFrame {
     /**
      * Creates new form StartPage
      */
-    public StartPage() {
+    private TurnManager t;
+    
+    public StartPage(TurnManager t) {
+        this.t = t;
         initComponents();
     }
 
@@ -70,7 +73,8 @@ public class StartPage extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-                AIStartPage a = new AIStartPage();
+                System.out.println(this.t.getCurrentPlayer());
+                AIStartPage a = new AIStartPage(t);
                 a.setVisible(true);
                 dispose();        // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -101,11 +105,11 @@ public class StartPage extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(StartPage.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
+        TurnManager t = new TurnManager();
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new StartPage().setVisible(true);
+                new StartPage(t).setVisible(true);
             }
         });
     }
