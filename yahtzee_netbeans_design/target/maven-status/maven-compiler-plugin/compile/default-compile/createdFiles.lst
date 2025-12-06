@@ -1,4 +1,5 @@
 com\mycompany\yahtzee\AIStartPage$2.class
+com\mycompany\yahtzee\EndPage$1.class
 com\mycompany\yahtzee\StartPage$1.class
 com\mycompany\yahtzee\YahtzeeDesign$4.class
 com\mycompany\yahtzee\YahtzeeDesign.class
@@ -28,5 +29,6 @@ com\mycompany\yahtzee\ScoreCellRenderer.class
 com\mycompany\yahtzee\StartPage.class
 com\mycompany\yahtzee\YahtzeeDesign$7.class
 com\mycompany\yahtzee\Yahtzee.class
+com\mycompany\yahtzee\EndPage.class
 com\mycompany\yahtzee\YahtzeeDesign$2.class
 com\mycompany\yahtzee\EasyYahtzeeAI.class

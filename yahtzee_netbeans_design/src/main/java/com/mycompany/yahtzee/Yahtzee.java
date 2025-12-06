@@ -18,7 +18,7 @@ public class Yahtzee {
         Player p = new Player("Prototype");
         t.addPlayer(p);
         System.out.println(t.getCurrentPlayer());
-        StartPage g = new StartPage(t);
+        EndPage g = new EndPage();
         g.setVisible(true);
         
         
