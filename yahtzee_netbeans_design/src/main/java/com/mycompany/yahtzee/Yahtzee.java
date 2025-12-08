@@ -20,7 +20,7 @@ public class Yahtzee {
         System.out.println(t.getCurrentPlayer());
         TurnManager tm = new TurnManager();
 
-        StartPageDesign startPage = new StartPageDesign(tm);
+        EndPage startPage = new EndPage(69);
         startPage.setVisible(true);
 
 
