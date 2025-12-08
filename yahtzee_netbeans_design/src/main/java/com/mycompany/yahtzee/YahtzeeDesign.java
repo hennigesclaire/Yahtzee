@@ -260,7 +260,7 @@ jTable2.addMouseListener(new MouseAdapter() {
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(41, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -352,7 +352,7 @@ jTable2.addMouseListener(new MouseAdapter() {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel7))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(149, Short.MAX_VALUE))
+                .addContainerGap(96, Short.MAX_VALUE))
         );
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 48)); // NOI18N
@@ -394,7 +394,8 @@ jTable2.addMouseListener(new MouseAdapter() {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(35, 35, 35))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -413,22 +414,31 @@ jTable2.addMouseListener(new MouseAdapter() {
 
     private void die5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_die5ActionPerformed
         holding[4] = !holding[4];
+        jLabel3.setText((holding[4]) ? "KEEPING" : "ROLLING");
     }//GEN-LAST:event_die5ActionPerformed
 
     private void die4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_die4ActionPerformed
         holding[3] = !holding[3];
+        jLabel5.setText((holding[3]) ? "KEEPING" : "ROLLING");
+
     }//GEN-LAST:event_die4ActionPerformed
 
     private void die3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_die3ActionPerformed
         holding[2] = !holding[2];
+        jLabel2.setText((holding[2]) ? "KEEPING" : "ROLLING");
+
     }//GEN-LAST:event_die3ActionPerformed
 
     private void die2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_die2ActionPerformed
         holding[1] = !holding[1];
+        jLabel4.setText((holding[1]) ? "KEEPING" : "ROLLING");
+
     }//GEN-LAST:event_die2ActionPerformed
 
     private void die1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_die1ActionPerformed
         holding[0] = !holding[0];
+        jLabel6.setText((holding[0]) ? "KEEPING" : "ROLLING");
+
     }//GEN-LAST:event_die1ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -558,7 +568,9 @@ private void finalizeCategorySelection(Category selectedCategory) {
     jButton1.setEnabled(true);
 
     if (scoreCard.isFull()) {
-        JOptionPane.showMessageDialog(this, "Game over! All categories filled.");
+        int t = scoreCard.getTotalScore();
+        EndPage ep = new EndPage(t);
+        ep.setVisible(true);
         jButton1.setEnabled(false);
         turnActive = false;
     }

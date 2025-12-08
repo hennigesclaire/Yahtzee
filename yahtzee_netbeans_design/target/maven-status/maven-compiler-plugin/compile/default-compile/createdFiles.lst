@@ -1,3 +1,4 @@
+com\mycompany\yahtzee\StartPageDesign$1.class
 com\mycompany\yahtzee\AIStartPage$2.class
 com\mycompany\yahtzee\EndPage$1.class
 com\mycompany\yahtzee\StartPage$1.class
@@ -10,8 +11,10 @@ com\mycompany\yahtzee\ScoreCardTableModel.class
 com\mycompany\yahtzee\CircularLinkedList.class
 com\mycompany\yahtzee\AIStartPage$4.class
 com\mycompany\yahtzee\AIStartPage$1.class
+com\mycompany\yahtzee\StartPageDesign$3.class
 com\mycompany\yahtzee\TurnManager.class
 com\mycompany\yahtzee\StartPage$2.class
+com\mycompany\yahtzee\StartPageDesign.class
 com\mycompany\yahtzee\YahtzeeDesign$3.class
 com\mycompany\yahtzee\Category.class
 com\mycompany\yahtzee\YahtzeeDesign$8.class
@@ -28,6 +31,7 @@ com\mycompany\yahtzee\AIPlayer.class
 com\mycompany\yahtzee\ScoreCellRenderer.class
 com\mycompany\yahtzee\StartPage.class
 com\mycompany\yahtzee\YahtzeeDesign$7.class
+com\mycompany\yahtzee\StartPageDesign$2.class
 com\mycompany\yahtzee\Yahtzee.class
 com\mycompany\yahtzee\EndPage.class
 com\mycompany\yahtzee\YahtzeeDesign$2.class
