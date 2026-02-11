@@ -9,9 +9,10 @@ import java.util.*;
  Reduced trial counts for faster decisions
  Considers game position and remaining categories
  */
-public class MediumYahtzeeAI {
-    private static final int TRIALS = 1000; 
 
+public class MediumYahtzeeAI implements YahtzeeAI{
+    private static final int TRIALS = 1000; 
+    
     public Set<Integer> chooseDiceToKeep(Dice[] currentDice, ScoreCard scoreCard, int rollsLeft) {
         // Quick filters to speed up decisions
         if (rollsLeft == 0) return new HashSet<>();
@@ -46,11 +47,13 @@ public class MediumYahtzeeAI {
         }
         return bestKeep;
     }
-
-    public Category chooseCategory(Dice[] finalDice, ScoreCard scoreCard) {
-        Map<Category, Integer> possible = scoreCard.calculatePossibleScores(finalDice);
+    
+    @Override
+    public Category chooseCategory(int[] finalDice, ScoreCard scoreCard) {
+        Map<Category, Integer> possible = scoreCard.calculatePossibleScoresint(finalDice);
         Category best = null;
         double bestValue = Double.NEGATIVE_INFINITY;
+       
 
         for (var entry : possible.entrySet()) {
             if (!scoreCard.isCategoryFilled(entry.getKey())) {
@@ -148,7 +151,8 @@ public class MediumYahtzeeAI {
             }
 
             // Find best category with strategic value
-            Map<Category, Integer> possible = scoreCard.calculatePossibleScores(diceCopy);
+            int[] values = diceToIntArray(diceCopy);
+            Map<Category, Integer> possible = scoreCard.calculatePossibleScoresint(values);
             double bestScore = 0;
             
             for (var entry : possible.entrySet()) {
@@ -233,4 +237,13 @@ public class MediumYahtzeeAI {
         }
         return count;
     }
+    
+    private int[] diceToIntArray(Dice[] dice) {
+    int[] values = new int[dice.length];
+    for (int i = 0; i < dice.length; i++) {
+        values[i] = dice[i].getValue();
+    }
+    return values;
+}
+
 }

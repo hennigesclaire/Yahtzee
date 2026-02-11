@@ -10,6 +10,9 @@ import java.util.Hashtable;
 import javax.swing.*;
 import java.awt.FlowLayout;
 import java.awt.Dimension;
+import java.awt.Component;
+import java.util.List;
+import com.mycompany.yahtzee.AIPlayer; 
 
 
 
@@ -31,7 +34,7 @@ public class StartPageDesign extends javax.swing.JFrame {
         this.tm = t;                         
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         initComponents();
-        createHostRow();
+        //createHostRow();
 
         ImageIcon icon1 = (ImageIcon) jLabel2.getIcon();
         Image image1 = icon1.getImage().getScaledInstance(
@@ -42,26 +45,28 @@ public class StartPageDesign extends javax.swing.JFrame {
         Image image2 = icon2.getImage().getScaledInstance(
             jLabel3.getWidth(), jLabel3.getHeight(), Image.SCALE_SMOOTH);
         jLabel3.setIcon(new ImageIcon(image2));
+        playerCount=0;
     }
 
     
-//    private static class AIPlayerComponents {
-//        JTextField nameField;
-//        JSlider difficultySlider;
-//
-//        public AIPlayerComponents(JTextField nameField, JSlider difficultySlider) {
-//            this.nameField = nameField;
-//            this.difficultySlider = difficultySlider;
-//        }
-//
-//        public String getName() {
-//            return nameField.getText();
-//        }
-//
-//        public String getDifficulty() {
-//            return difficultySlider.getValue() == 0 ? "Easy" : "Hard";
-//        }
-//    }
+    private static class AIPlayerComponents {
+        JTextField nameField;
+        JSlider difficultySlider;
+
+        public AIPlayerComponents(JTextField nameField, JSlider difficultySlider) {
+            this.nameField = nameField;
+            this.difficultySlider = difficultySlider;
+        }
+
+        public String getName() {
+            return nameField.getText();
+        }
+
+        public String getDifficulty() {
+            return difficultySlider.getValue() == 0 ? "Easy" : "Hard";
+        }
+    }
+    
     private void updateButtonState() {
     boolean full = playerCount >= 6;
     jButton1.setEnabled(!full);
@@ -115,6 +120,7 @@ public class StartPageDesign extends javax.swing.JFrame {
     }
     private JPanel createAIPlayerRow(int number) {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        row.putClientProperty("type", "AI");
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         JTextField nameField = new JTextField("AI Player " + number, 12);
         ImageIcon icon = new ImageIcon(getClass().getResource("/img/trash_icon.png"));
@@ -129,7 +135,7 @@ public class StartPageDesign extends javax.swing.JFrame {
            jPanel3.revalidate();
            jPanel3.repaint();
            updateButtonState();
-
+        
        });
 
 
@@ -240,11 +246,11 @@ public class StartPageDesign extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 266, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(17, 17, 17))
+                .addGap(65, 65, 65))
         );
 
         jButton3.setBackground(new java.awt.Color(153, 153, 0));
@@ -288,7 +294,7 @@ public class StartPageDesign extends javax.swing.JFrame {
                     .addComponent(jLabel1))
                 .addGap(18, 18, 18)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 53, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(40, 40, 40))
         );
@@ -319,7 +325,7 @@ public class StartPageDesign extends javax.swing.JFrame {
     jPanel3.repaint();
     updateButtonState();
     }//GEN-LAST:event_jButton1ActionPerformed
-
+    
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
     playerCount++;
     JPanel row = createAIPlayerRow(playerCount);
@@ -332,10 +338,44 @@ public class StartPageDesign extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        AIPlayer a = new AIPlayer(2);     
-        tm.addPlayer(a);
-        YahtzeeDesign y = new YahtzeeDesign(tm);
-        y.setVisible(true);
+ 
+    int idCounter = 1;
+
+    for (Component comp : jPanel3.getComponents()) {
+        if (!(comp instanceof JPanel)) continue;
+
+        JPanel row = (JPanel) comp;
+        JTextField nameField = null;
+        JSlider difficultySlider = null;
+
+        for (Component inner : row.getComponents()) {
+            if (inner instanceof JTextField)
+                nameField = (JTextField) inner;
+            if (inner instanceof JSlider)
+                difficultySlider = (JSlider) inner;
+        }
+
+        boolean isAI = "AI".equals(row.getClientProperty("type"));
+
+        if (isAI && difficultySlider != null) {
+            AIPlayer ai = new AIPlayer(idCounter++);
+            //ai.setUsername(nameField.getText());
+
+            if (difficultySlider.getValue() == 0) {
+                ai.setStrategy(new EasyYahtzeeAI());
+            } else {
+                ai.setStrategy(new MediumYahtzeeAI());
+            }
+
+            tm.addPlayer(ai);
+        } else if (nameField != null) {
+            tm.addPlayer(new Player(nameField.getText()));
+            idCounter++;
+        }
+    }
+
+    YahtzeeDesign y = new YahtzeeDesign(tm);
+    y.setVisible(true);
         dispose();    }//GEN-LAST:event_jButton3ActionPerformed
     
     /**

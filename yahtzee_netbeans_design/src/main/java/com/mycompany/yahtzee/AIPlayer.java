@@ -9,19 +9,17 @@ package com.mycompany.yahtzee;
  * @author joshu
  */
 public class AIPlayer extends Player {
-    
-    private int difficulty;
-    
-    
-    public AIPlayer(int d)
-    {
-        super("AI Player");
-        this.difficulty = d;
+    private YahtzeeAI strategy; 
+
+    public AIPlayer(int id) {
+        super("AI Player " + id);
     }
-    
-    private int getDifficulty()
-    {
-        return difficulty;
+
+    public void setStrategy(YahtzeeAI strategy) {
+        this.strategy = strategy;
     }
-    
+
+    public YahtzeeAI getStrategy() {
+        return strategy;
+    }
 }

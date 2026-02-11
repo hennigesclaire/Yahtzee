@@ -52,13 +52,81 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private int score = 0;
 
     private TurnManager t = null;
-
-
-
     
-    /**
-     * Creates new form YahtzeeDesign
-     */
+public int[] getDiceValues() {
+    int[] vals = new int[5];
+    for (int i = 0; i < 5; i++){
+        vals[i] = dice[i].getValue(); 
+    }
+    return vals;
+}
+
+private void updateHoldLabels() {
+    jLabel6.setText((holding[0]) ? "KEEPING" : "ROLLING");
+    jLabel4.setText((holding[1]) ? "KEEPING" : "ROLLING");
+    jLabel2.setText((holding[2]) ? "KEEPING" : "ROLLING");
+    jLabel5.setText((holding[3]) ? "KEEPING" : "ROLLING");
+    jLabel3.setText((holding[4]) ? "KEEPING" : "ROLLING");
+}
+
+    private void checkAndPlayAITurn() {
+        
+        Player current = t.getCurrentPlayer();
+        jLabel1.setText("Turn: " + current.getUsername());
+
+        if (current instanceof AIPlayer) {
+            AIPlayer ai = (AIPlayer) current;
+            jButton1.setEnabled(false); 
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        YahtzeeAI brain = ai.getStrategy();
+                        int rollsRemaining = 2;
+                      
+                        Thread.sleep(1000);
+                        java.awt.EventQueue.invokeLater(() -> performManualRoll());
+                        while (rollsRemaining > 0) {
+                            Thread.sleep(1500);
+                            java.util.Set<Integer> toKeep = brain.chooseDiceToKeep(dice, scoreCard, rollsRemaining);
+                            
+                            if (toKeep.size() == 5) {
+                                break; 
+                            }
+                            for (int j = 0; j < 5; j++) {
+                                holding[j] = toKeep.contains(j);
+                            }
+                            
+                            java.awt.EventQueue.invokeLater(() -> {
+                                updateHoldLabels();
+                                performManualRoll();
+                            });
+                            
+                            rollsRemaining--;
+                        }
+                        Thread.sleep(1500);
+                        int[] currentVals = getDiceValues();
+                        Category choice = brain.chooseCategory(currentVals, scoreCard);
+                        
+                        java.awt.EventQueue.invokeLater(() -> {
+                            finalizeCategorySelection(choice);
+                            t.nextPlayer();
+                            checkAndPlayAITurn();
+                        });
+                        
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        } else {
+            // Re-enable for human player
+            jButton1.setEnabled(true);
+            turnActive = true;
+        }
+    }
+
     public YahtzeeDesign(TurnManager t) {
         this.t = t;
         initComponents();
@@ -83,6 +151,7 @@ jTable1.addMouseListener(new MouseAdapter() {
             Category selected = upperModel.getCategoryAt(row);
 
             // Currently set that you double clikc to select. Good?
+            // It's good! -Olu
             if (pendingCategory == null || !pendingCategory.equals(selected)) {
                 pendingCategory = selected;
             } else {
@@ -94,6 +163,8 @@ jTable1.addMouseListener(new MouseAdapter() {
         }
     }
 });
+        checkAndPlayAITurn();
+
 jTable2.addMouseListener(new MouseAdapter() {
     @Override
     public void mouseClicked(MouseEvent e) {
@@ -149,13 +220,18 @@ jTable2.addMouseListener(new MouseAdapter() {
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
+        jButton2 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(152, 152, 152));
 
-        jLayeredPane1.setBackground(new java.awt.Color(152, 152, 152));
+        jLayeredPane1.setBackground(new java.awt.Color(102, 102, 0));
 
+        jButton1.setBackground(new java.awt.Color(255, 255, 51));
         jButton1.setText("Roll");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -163,7 +239,8 @@ jTable2.addMouseListener(new MouseAdapter() {
             }
         });
 
-        jPanel1.setBackground(new java.awt.Color(175, 175, 175));
+        jPanel1.setBackground(new java.awt.Color(102, 0, 0));
+        jPanel1.setForeground(new java.awt.Color(51, 0, 0));
 
         die1.setFont(f.deriveFont(36f));
         die1.setText("5");
@@ -224,6 +301,7 @@ jTable2.addMouseListener(new MouseAdapter() {
 
         jLabel3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
+        jLabel4.setBackground(new java.awt.Color(51, 0, 0));
         jLabel4.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
         jLabel5.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -277,8 +355,9 @@ jTable2.addMouseListener(new MouseAdapter() {
                 .addGap(54, 54, 54))
         );
 
-        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel2.setBackground(new java.awt.Color(0, 255, 0));
 
+        jTable1.setBackground(new java.awt.Color(255, 255, 204));
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
@@ -292,6 +371,7 @@ jTable2.addMouseListener(new MouseAdapter() {
         ));
         jScrollPane1.setViewportView(jTable1);
 
+        jTable2.setBackground(new java.awt.Color(255, 255, 204));
         jTable2.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
@@ -314,24 +394,35 @@ jTable2.addMouseListener(new MouseAdapter() {
         jLabel9.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel9.setText("Upper Section");
 
+        jButton2.setBackground(new java.awt.Color(255, 51, 51));
+        jButton2.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        jButton2.setText("END GAME");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 1, Short.MAX_VALUE)
+                    .addComponent(jSeparator1)
                     .addComponent(jSeparator2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 458, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(7, 7, 7))
+                .addGap(471, 471, 471))
             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 458, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel9, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel9, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 458, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -342,30 +433,60 @@ jTable2.addMouseListener(new MouseAdapter() {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel9)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(9, 9, 9)
+                .addComponent(jLabel8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(165, 165, 165)
-                        .addComponent(jLabel8)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel7))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(96, Short.MAX_VALUE))
+                    .addComponent(jLabel7)
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 48)); // NOI18N
+        jLabel1.setBackground(new java.awt.Color(0, 204, 102));
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 40)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Username");
+        jLabel1.setText("Turn: Username");
+        jLabel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         jLabel1.setMaximumSize(new java.awt.Dimension(330, 113));
         jLabel1.setMinimumSize(new java.awt.Dimension(330, 113));
         jLabel1.setPreferredSize(new java.awt.Dimension(330, 113));
+
+        jScrollPane3.setBackground(new java.awt.Color(255, 255, 204));
+        jScrollPane3.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        jTextArea1.setBackground(new java.awt.Color(255, 255, 204));
+        jTextArea1.setColumns(20);
+        jTextArea1.setFont(new java.awt.Font("Segoe UI", 3, 12)); // NOI18N
+        jTextArea1.setRows(5);
+        jTextArea1.setText("\t          GAME RULES\n\n Score the highest total points by rolling five dice and\n choosing the best scoring category each turn.\n\n • Each player gets 13 turns. \n • On your turn, you may roll the dice up to 3 times. \n • After each roll, you may keep (hold) any dice and\n reroll the  rest\n • After the final roll(or sooner if you choose), select one \nunused scoring category to record your score for that turn.\n \nWhen all 13 categories are filled, player total their scores.\nHighest score wins. \n");
+        jScrollPane3.setViewportView(jTextArea1);
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 379, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 296, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
 
         jLayeredPane1.setLayer(jButton1, javax.swing.JLayeredPane.DEFAULT_LAYER);
         jLayeredPane1.setLayer(jPanel1, javax.swing.JLayeredPane.DEFAULT_LAYER);
         jLayeredPane1.setLayer(jPanel2, javax.swing.JLayeredPane.DEFAULT_LAYER);
         jLayeredPane1.setLayer(jLabel1, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        jLayeredPane1.setLayer(jPanel3, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
         javax.swing.GroupLayout jLayeredPane1Layout = new javax.swing.GroupLayout(jLayeredPane1);
         jLayeredPane1.setLayout(jLayeredPane1Layout);
@@ -374,10 +495,15 @@ jTable2.addMouseListener(new MouseAdapter() {
             .addGroup(jLayeredPane1Layout.createSequentialGroup()
                 .addGroup(jLayeredPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jLayeredPane1Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(jLayeredPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(jLayeredPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jLayeredPane1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jLayeredPane1Layout.createSequentialGroup()
+                                .addGap(16, 16, 16)
+                                .addGroup(jLayeredPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -389,8 +515,10 @@ jTable2.addMouseListener(new MouseAdapter() {
                 .addGroup(jLayeredPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jLayeredPane1Layout.createSequentialGroup()
-                        .addGap(29, 29, 29)
+                        .addGap(28, 28, 28)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(40, 40, 40)
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
@@ -402,11 +530,16 @@ jTable2.addMouseListener(new MouseAdapter() {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLayeredPane1)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLayeredPane1))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLayeredPane1)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(17, 17, 17)
+                .addComponent(jLayeredPane1)
+                .addContainerGap())
         );
 
         pack();
@@ -465,6 +598,12 @@ jTable2.addMouseListener(new MouseAdapter() {
 
         }
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        EndPage end = new EndPage(1);
+        end.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_jButton2ActionPerformed
                                  
                                                                     
                               
@@ -553,7 +692,7 @@ private void finalizeCategorySelection(Category selectedCategory) {
 
 
     turnActive = false;
-    rollCount = 0;                       
+    rollCount = 0;  
     Arrays.fill(holding, false);
     javax.swing.JButton[] diceButtons = {die1, die2, die3, die4, die5};
     javax.swing.JLabel[] labels = {jLabel6, jLabel4, jLabel2, jLabel5, jLabel3};
@@ -563,6 +702,8 @@ private void finalizeCategorySelection(Category selectedCategory) {
     }
 
     pendingCategory = null;
+    t.nextPlayer(); 
+    checkAndPlayAITurn();
     jTable1.clearSelection();
     jTable2.clearSelection();
     jButton1.setEnabled(true);
@@ -575,6 +716,16 @@ private void finalizeCategorySelection(Category selectedCategory) {
         turnActive = false;
     }
 }
+    
+
+// Simulates a button click on the "Roll" button
+    private void performManualRoll() {
+        jButton1ActionPerformed(null);
+    }
+    
+ 
+    
+
 
 
 
@@ -590,6 +741,7 @@ private void finalizeCategorySelection(Category selectedCategory) {
     private javax.swing.JButton die4;
     private javax.swing.JButton die5;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -602,11 +754,14 @@ private void finalizeCategorySelection(Category selectedCategory) {
     private javax.swing.JLayeredPane jLayeredPane1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JTable jTable1;
     private javax.swing.JTable jTable2;
+    private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables
 }

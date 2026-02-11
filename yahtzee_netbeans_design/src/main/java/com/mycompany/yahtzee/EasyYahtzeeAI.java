@@ -7,9 +7,8 @@ import java.util.*;
 // I will add a filter, add strategic awareness, and make add filters on trail counts so it can be faster with certain decisions
 // I'll use the Monte Carlo Tree Search to simulate a harder AI if need be. 
 
-public class EasyYahtzeeAI {
-
-    private Set<Integer> chooseDiceToKeep(Dice[] currentDice, ScoreCard scoreCard, int rollsLeft) {
+public class EasyYahtzeeAI implements YahtzeeAI {
+    public Set<Integer> chooseDiceToKeep(Dice[] currentDice, ScoreCard scoreCard, int rollsLeft) {
         Set<Integer> bestKeep = new HashSet<>();
         double bestScore = Double.NEGATIVE_INFINITY;
 
@@ -32,8 +31,9 @@ public class EasyYahtzeeAI {
 
     //Choose the best scoring category.
      
-    private Category chooseCategory(Dice[] finalDice, ScoreCard scoreCard) {
-        Map<Category,Integer> possible = scoreCard.calculatePossibleScores(finalDice);
+    @Override
+    public Category chooseCategory(int[] finalDice, ScoreCard scoreCard) {
+        Map<Category,Integer> possible = scoreCard.calculatePossibleScoresint(finalDice);
         Category best = null;
         int bestVal = -1;
 

@@ -11,7 +11,36 @@ public class ScoreCard {
         }
     }
 
- public Map<Category, Integer> calculatePossibleScores(Dice[] dice) {
+    public Map<Category, Integer> calculatePossibleScoresint(int[] diceValues) {
+    Map<Category, Integer> result = new LinkedHashMap<>();
+    int[] counts = new int[7]; 
+
+    for (int val : diceValues) {
+        counts[val]++;
+    }
+
+    result.put(Category.ONES, counts[1] * 1);
+    result.put(Category.TWOS, counts[2] * 2);
+    result.put(Category.THREES, counts[3] * 3);
+    result.put(Category.FOURS, counts[4] * 4);
+    result.put(Category.FIVES, counts[5] * 5);
+    result.put(Category.SIXES, counts[6] * 6);
+    
+    int totalSum = 0;
+    for (int v : diceValues) totalSum += v;
+
+    result.put(Category.THREE_OF_A_KIND, hasCount(counts, 3) ? totalSum : 0);
+    result.put(Category.FOUR_OF_A_KIND, hasCount(counts, 4) ? totalSum : 0);
+    result.put(Category.FULL_HOUSE, isFullHouse(counts) ? 25 : 0);
+    result.put(Category.SMALL_STRAIGHT, hasStraight(counts, 4) ? 30 : 0);
+    result.put(Category.LARGE_STRAIGHT, hasStraight(counts, 5) ? 40 : 0);
+    result.put(Category.YAHTZEE, hasCount(counts, 5) ? 50 : 0);
+    result.put(Category.CHANCE, totalSum);
+
+    return result;
+}
+
+    public Map<Category, Integer> calculatePossibleScores(Dice[] dice) {
     Map<Category, Integer> result = new LinkedHashMap<>();
     int[] counts = new int[7]; 
 
@@ -54,6 +83,12 @@ public class ScoreCard {
     result.put(Category.CHANCE, sum(dice));
 
     return result;
+}
+    
+    private int sumIntArray(int[] dice) {
+    int total = 0;
+    for (int d : dice) total += d;
+    return total;
 }
 
     private boolean hasCount(int[] counts, int n) {
