@@ -4,6 +4,7 @@
  */
 package com.mycompany.yahtzee;
 
+import java.awt.Component;
 import java.awt.Image;
 import javax.swing.ImageIcon;
 import java.util.Hashtable;
@@ -20,6 +21,7 @@ import java.awt.Dimension;
 public class StartPageDesign extends javax.swing.JFrame {
 
     private TurnManager tm;  
+    private JPanel[] players = new JPanel[6];
     private static final java.util.logging.Logger logger =
         java.util.logging.Logger.getLogger(StartPageDesign.class.getName());
     private int playerCount = 1;
@@ -78,7 +80,8 @@ public class StartPageDesign extends javax.swing.JFrame {
         row.add(spacer); 
         row.add(nameField);
 
-
+        players[0] = row;
+        
 
         jPanel3.add(row);
         jPanel3.add(Box.createRigidArea(new Dimension(0, 8)));
@@ -101,6 +104,7 @@ public class StartPageDesign extends javax.swing.JFrame {
         deleteButton1.setBorderPainted(false); 
         deleteButton1.setContentAreaFilled(false); 
         deleteButton1.addActionListener(e -> {
+            players[playerCount-1] = null;
             playerCount--;
             jPanel3.remove(row);
             jPanel3.revalidate();
@@ -128,6 +132,7 @@ public class StartPageDesign extends javax.swing.JFrame {
         deleteButton.setContentAreaFilled(false); 
         deleteButton.setOpaque(false);
         deleteButton.addActionListener(e -> {
+            players[playerCount-1] = null;
             playerCount--;
            jPanel3.remove(row);
            jPanel3.revalidate();
@@ -395,16 +400,42 @@ public class StartPageDesign extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        AIPlayer a = new AIPlayer(2);
-        tm.addPlayer(a);
+        
+        for(int i = 0; i < playerCount; i++)
+        {
+            JPanel row = players[i];
+            String name = "";
+            int difficulty = -1;
+            for (Component c : row.getComponents()) {
+                if (c instanceof JTextField) {
+                    name = ((JTextField)c).getText();
+                    System.out.println("Name: " + name);
+                }
+
+                if (c instanceof JSlider) {
+                    difficulty = ((JSlider)c).getValue();
+                    System.out.println("Difficulty: " + difficulty);
+                }
+            }
+            if(difficulty == -1) tm.addPlayer(new Player(name));
+            else if(name.equals("")) tm.addPlayer(new AIPlayer(difficulty));
+            else tm.addPlayer(new AIPlayer(name, difficulty));
+        }
+        
+        for(int i = 0; i < playerCount; i++)
+        {
+            tm.printCurrent();
+        }
+        
         YahtzeeDesign y = new YahtzeeDesign(tm);
         y.setVisible(true);
+        this.setVisible(false);
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         playerCount++;
         JPanel row = createAIPlayerRow(playerCount);
-
+        players[playerCount-1] = row;
         jPanel3.add(row);
         jPanel3.add(Box.createRigidArea(new Dimension(0, 8)));
         jPanel3.revalidate();
@@ -415,7 +446,7 @@ public class StartPageDesign extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         playerCount++;
         JPanel row = createHumanPlayerRow(playerCount);
-
+        players[playerCount-1] = row;
         jPanel3.add(row);
         jPanel3.add(Box.createRigidArea(new Dimension(0, 8)));
         jPanel3.revalidate();

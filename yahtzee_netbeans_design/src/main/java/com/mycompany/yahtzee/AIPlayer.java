@@ -19,6 +19,12 @@ public class AIPlayer extends Player {
         this.difficulty = d;
     }
     
+    public AIPlayer(String n, int d)
+    {
+        super(n);
+        this.difficulty = d;
+    }
+    
     private int getDifficulty()
     {
         return difficulty;
