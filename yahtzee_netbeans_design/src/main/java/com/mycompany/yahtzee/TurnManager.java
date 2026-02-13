@@ -65,6 +65,12 @@ public class TurnManager {
         this.rolls = 3;
     }
     
+    public void printCurrent()
+    {
+        System.out.println(getCurrentPlayer());
+        this.nextPlayer();
+    }
+    
     public void updateInterface()
     {
         //This is used to update the game interface for each player. Currently, this isn't possible.
