@@ -111,7 +111,6 @@ private void updateHoldLabels() {
                         
                         java.awt.EventQueue.invokeLater(() -> {
                             finalizeCategorySelection(choice);
-                            t.nextPlayer();
                             checkAndPlayAITurn();
                         });
                         
