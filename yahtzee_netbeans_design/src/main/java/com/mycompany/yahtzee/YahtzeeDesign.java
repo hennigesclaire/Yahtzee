@@ -76,7 +76,13 @@ private void updateHoldLabels() {
 
         if (current instanceof AIPlayer) {
             AIPlayer ai = (AIPlayer) current;
-            jButton1.setEnabled(false); 
+            jButton1.setEnabled(false);
+            die1.setEnabled(false);
+            die2.setEnabled(false);
+            die3.setEnabled(false);
+            die4.setEnabled(false);
+            die5.setEnabled(false);
+            
 
             new Thread(new Runnable() {
                 @Override
@@ -122,6 +128,11 @@ private void updateHoldLabels() {
         } else {
             // Re-enable for human player
             jButton1.setEnabled(true);
+            die1.setEnabled(true);
+            die2.setEnabled(true);
+            die3.setEnabled(true);
+            die4.setEnabled(true);
+            die5.setEnabled(true);
             turnActive = true;
         }
     }
