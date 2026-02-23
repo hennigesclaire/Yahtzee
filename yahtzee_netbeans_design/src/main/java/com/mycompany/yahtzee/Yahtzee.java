@@ -14,10 +14,8 @@ import java.util.Random;
 public class Yahtzee {
 
     public static void main(String[] args) {
-        TurnManager t = new TurnManager();
-        System.out.println(t.getCurrentPlayer());
+        StartPageDesign startPage = new StartPageDesign();
 
-        StartPageDesign startPage = new StartPageDesign(t);
         startPage.setVisible(true);
     }
 }

@@ -56,7 +56,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
 public int[] getDiceValues() {
     int[] vals = new int[5];
     for (int i = 0; i < 5; i++){
-        vals[i] = dice[i].getValue(); 
+        vals[i] = t.getDiceFromInterface()[i]; 
     }
     return vals;
 }
@@ -89,7 +89,7 @@ private void updateHoldLabels() {
                 public void run() {
                     try {
                         YahtzeeAI brain = ai.getStrategy();
-                        int rollsRemaining = 2;
+                        int rollsRemaining = t.getRolls();
                       
                         Thread.sleep(1000);
                         java.awt.EventQueue.invokeLater(() -> performManualRoll());
@@ -109,10 +109,10 @@ private void updateHoldLabels() {
                                 performManualRoll();
                             });
                             
-                            rollsRemaining--;
+                            t.removeRoll();
                         }
                         Thread.sleep(1500);
-                        int[] currentVals = getDiceValues();
+                        int[] currentVals = t.getDiceFromInterface();
                         Category choice = brain.chooseCategory(currentVals, scoreCard);
                         
                         java.awt.EventQueue.invokeLater(() -> {
@@ -139,8 +139,9 @@ private void updateHoldLabels() {
 
     public YahtzeeDesign(TurnManager t) {
         this.t = t;
+        t.resetRolls();
         initComponents();
-        scoreCard = new ScoreCard();
+        scoreCard = t.getScoreCard();
         upperModel = new ScoreCardTableModel(scoreCard, UPPER);
         lowerModel = new ScoreCardTableModel(scoreCard, LOWER);
         jTable1.setModel(upperModel);
@@ -148,7 +149,8 @@ private void updateHoldLabels() {
         jTable1.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
         jTable2.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
 
-
+        this.t.createInterface();
+        
         System.out.println(this.t.getCurrentPlayer());
         jLabel1.setText(this.t.getCurrentPlayer().getUsername());
 jTable1.addMouseListener(new MouseAdapter() {
@@ -585,7 +587,7 @@ jTable2.addMouseListener(new MouseAdapter() {
     }//GEN-LAST:event_die1ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        if (!turnActive && rollCount == 0) {
+        if (!turnActive && t.getRolls() > 0) {
             turnActive = true;
         }
         if (!turnActive) return;
@@ -594,7 +596,8 @@ jTable2.addMouseListener(new MouseAdapter() {
             if(!holding[i])
             {
                 dice[i].roll();
-                j[i].setText(""+dice[i].getValue());
+                t.updateInterface(dice);
+                j[i].setText(""+t.getDiceFromInterface()[i]);
             }
             currentRoll = Arrays.copyOf(dice, dice.length);
             Map<Category, Integer> possibleScores = scoreCard.calculatePossibleScores(dice);
@@ -602,8 +605,8 @@ jTable2.addMouseListener(new MouseAdapter() {
             lowerModel.setPossibleScores(possibleScores);
 
         }
-        rollCount++;
-        if (rollCount >= MAX_ROLLS) {
+        t.removeRoll();
+        if (t.getRolls() == 0) {
             jButton1.setEnabled(false);
 
         }
@@ -710,21 +713,31 @@ private void finalizeCategorySelection(Category selectedCategory) {
         diceButtons[i].setText("-");     
         labels[i].setText("");
     }
-
-    pendingCategory = null;
-    t.nextPlayer(); 
-    checkAndPlayAITurn();
-    jTable1.clearSelection();
-    jTable2.clearSelection();
-    jButton1.setEnabled(true);
-
+    
     if (scoreCard.isFull()) {
-        int t = scoreCard.getTotalScore();
-        EndPage ep = new EndPage(t);
+        int i = scoreCard.getTotalScore();
+        EndPage ep = new EndPage(i);
         ep.setVisible(true);
         jButton1.setEnabled(false);
         turnActive = false;
     }
+
+    pendingCategory = null;
+    t.nextPlayer(); 
+    jTable1.clearSelection();
+    jTable2.clearSelection();
+    jButton1.setEnabled(true);
+    scoreCard = t.getScoreCard();
+    upperModel = new ScoreCardTableModel(scoreCard, UPPER);
+    lowerModel = new ScoreCardTableModel(scoreCard, LOWER);
+    jTable1.setModel(upperModel);
+    jTable2.setModel(lowerModel);
+    jTable1.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
+    jTable2.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
+    checkAndPlayAITurn();
+    t.resetRolls();
+
+    
 }
     
 

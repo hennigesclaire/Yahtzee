@@ -13,6 +13,9 @@ public class TurnManager {
     private int turn = 0;
     private int rolls = 0;
     private Player currentPlayer;
+    private int count = 0;
+    private Interface inter = null;
+    private CircularLinkedList<ScoreCard> a = new CircularLinkedList<>();
     
     public TurnManager()
     {
@@ -27,32 +30,46 @@ public class TurnManager {
     
     public Player nextPlayer()
     {
+        this.a.rotate();
         return this.playerList.next();
     }
     
     public void addPlayer(Player p)
     {
         this.playerList.addLast(p);
+        this.a.addLast(new ScoreCard());
         System.out.println(p);
+        this.count++;
 
     }
     
     public Player removePlayer(Player p)
     {
         CircularLinkedList<Player> temp = new CircularLinkedList<>();
+        CircularLinkedList<ScoreCard> temp2 = new CircularLinkedList<>();
         Player removedPlayer = new Player("");
         while(!this.playerList.isEmpty())
         {
             Player q = this.playerList.removeFirst();
+            ScoreCard s = this.a.removeFirst();
             if(!p.getUsername().equals(q.getUsername()))
             {
                 temp.addLast(q);
+                temp2.addLast(s);
             }
             else removedPlayer = q;
         }
         this.playerList = temp;
         temp = null;
+        this.a = temp2;
+        temp2 = null;
+        this.count--;
         return removedPlayer;
+    }
+    
+    public int getCount()
+    {
+        return count;
     }
     
     public void removeRoll()
@@ -65,15 +82,40 @@ public class TurnManager {
         this.rolls = 3;
     }
     
+    public int getRolls()
+    {
+        return this.rolls;
+    }
+    
     public void printCurrent()
     {
         System.out.println(getCurrentPlayer());
         this.nextPlayer();
     }
     
-    public void updateInterface()
+    public void createInterface()
     {
-        //This is used to update the game interface for each player. Currently, this isn't possible.
+        inter = new Interface(this);
+    }
+    
+    public void updateInterface(Dice[] d) // Dice
+    {
+        int[] temp = new int[5];
+        for(int i = 0; i < 5; i++)
+        {
+            temp[i] = d[i].getValue();
+        }
+        inter.setDiceValues(temp);
+    }
+    
+    public int[] getDiceFromInterface()
+    {
+        return inter.getDiceValues();
+    }
+   
+    public ScoreCard getScoreCard()
+    {
+        return a.first();
     }
     
 }

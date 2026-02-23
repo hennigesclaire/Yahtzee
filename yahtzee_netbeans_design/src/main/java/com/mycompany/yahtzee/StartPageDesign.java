@@ -32,8 +32,8 @@ public class StartPageDesign extends javax.swing.JFrame {
     /**
      * Creates new form StartPageDesign
      */
-    public StartPageDesign(TurnManager t) {   
-        this.tm = t;                         
+    public StartPageDesign() {   
+        this.tm = new TurnManager();                         
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         initComponents();
         //createHostRow();

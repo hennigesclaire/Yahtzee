@@ -4,7 +4,7 @@
  */
 package com.mycompany.yahtzee;
 
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 
 /**
  *
@@ -14,30 +14,40 @@ public class Interface {
     private int[] diceValues;
     private ScoreCard scores;
     private String username;
-    private LinkedHashMap<Player, Integer> totalScores = new LinkedHashMap<>();
+    private ArrayList<Player> players = new ArrayList<>();
     
-    public Interface()
+    public Interface(TurnManager t)
     {
-        
+        for(int i = 0; i < t.getCount(); i++)
+        {
+            players.add(t.nextPlayer());
+            System.out.println(players);
+        }
+        diceValues = new int[5];
     }
     
-    public void setDiceValues()
+    public void setDiceValues(int[] v)
     {
-    
+        for(int i = 0; i < 5; i++)
+        {
+            diceValues[i] = v[i];
+        }
     }
     
-    public void setScoreCard()
+    public int[] getDiceValues()
     {
-    
+        return diceValues;
     }
     
-    public void setName()
+    public void setScoreCard(ScoreCard sc)
     {
-    
+        this.scores = sc;
     }
     
-    public void setTotalScores()
+    public void setName(String s)
     {
-    
+        this.username = s;
     }
+    
+    
 }
