@@ -714,30 +714,31 @@ private void finalizeCategorySelection(Category selectedCategory) {
         labels[i].setText("");
     }
     
-    if (scoreCard.isFull()) {
+    if (t.completeGame()) {
         int i = scoreCard.getTotalScore();
         EndPage ep = new EndPage(i);
         ep.setVisible(true);
         jButton1.setEnabled(false);
         turnActive = false;
     }
+    else
+    {
+        pendingCategory = null;
+        t.nextPlayer(); 
+        jTable1.clearSelection();
+        jTable2.clearSelection();
+        jButton1.setEnabled(true);
+        scoreCard = t.getScoreCard();
+        upperModel = new ScoreCardTableModel(scoreCard, UPPER);
+        lowerModel = new ScoreCardTableModel(scoreCard, LOWER);
+        jTable1.setModel(upperModel);
+        jTable2.setModel(lowerModel);
+        jTable1.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
+        jTable2.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
+        checkAndPlayAITurn();
+        t.resetRolls();
+    }
 
-    pendingCategory = null;
-    t.nextPlayer(); 
-    jTable1.clearSelection();
-    jTable2.clearSelection();
-    jButton1.setEnabled(true);
-    scoreCard = t.getScoreCard();
-    upperModel = new ScoreCardTableModel(scoreCard, UPPER);
-    lowerModel = new ScoreCardTableModel(scoreCard, LOWER);
-    jTable1.setModel(upperModel);
-    jTable2.setModel(lowerModel);
-    jTable1.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
-    jTable2.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
-    checkAndPlayAITurn();
-    t.resetRolls();
-
-    
 }
     
 

@@ -13,6 +13,7 @@ public class Player {
     private int rolls;
     private boolean[] keptDice;
     private ScoreCard scores;
+    private boolean complete;
     
     
     public Player(String n)
@@ -21,6 +22,7 @@ public class Player {
         rolls = 3;
         keptDice = new boolean[5];
         scores = new ScoreCard();
+        complete = false;
     }
     
     public Dice[] rollDice()

@@ -118,4 +118,16 @@ public class TurnManager {
         return a.first();
     }
     
+    public boolean completeGame()
+    {
+        boolean temp = true;
+        for(int i = 0; i < count; i++)
+        {
+            temp = a.first().isFull();
+            this.a.rotate();
+            if(!temp) break;
+        }
+        return temp;
+    }
+    
 }
