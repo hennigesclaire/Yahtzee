@@ -89,12 +89,12 @@ private void updateHoldLabels() {
                 public void run() {
                     try {
                         YahtzeeAI brain = ai.getStrategy();
-                        int rollsRemaining = t.getRolls();
                       
                         Thread.sleep(1000);
                         java.awt.EventQueue.invokeLater(() -> performManualRoll());
-                        while (rollsRemaining > 0) {
+                        while (t.getRolls() > 0) {
                             Thread.sleep(1500);
+                            int rollsRemaining = t.getRolls();
                             java.util.Set<Integer> toKeep = brain.chooseDiceToKeep(dice, scoreCard, rollsRemaining);
                             
                             if (toKeep.size() == 5) {
@@ -113,11 +113,12 @@ private void updateHoldLabels() {
                         }
                         Thread.sleep(1500);
                         int[] currentVals = t.getDiceFromInterface();
-                        Category choice = brain.chooseCategory(currentVals, scoreCard);
+                        ScoreCard aiScoreCard = scoreCard;
+                        Category choice = brain.chooseCategory(currentVals, aiScoreCard);
                         
                         java.awt.EventQueue.invokeLater(() -> {
                             finalizeCategorySelection(choice);
-                            checkAndPlayAITurn();
+                            //checkAndPlayAITurn();
                         });
                         
                     } catch (Exception e) {
@@ -693,8 +694,12 @@ public Font getFont() {
     }
 }
 private void finalizeCategorySelection(Category selectedCategory) {
-    if (scoreCard.isCategoryFilled(selectedCategory)) {
-        JOptionPane.showMessageDialog(this, "That category is already filled!");
+    if (scoreCard.isCategoryFilled(selectedCategory)) 
+    {
+        if (!(t.getCurrentPlayer() instanceof AIPlayer)) 
+        {
+            JOptionPane.showMessageDialog(this, "That category is already filled!");
+        }
         return;
     }
 
@@ -735,8 +740,8 @@ private void finalizeCategorySelection(Category selectedCategory) {
         jTable2.setModel(lowerModel);
         jTable1.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
         jTable2.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
-        checkAndPlayAITurn();
         t.resetRolls();
+        checkAndPlayAITurn();
     }
 
 }

@@ -34,6 +34,8 @@ public class ScoreCard {
     result.put(Category.FULL_HOUSE, isFullHouse(counts) ? 25 : 0);
     result.put(Category.SMALL_STRAIGHT, hasStraight(counts, 4) ? 30 : 0);
     result.put(Category.LARGE_STRAIGHT, hasStraight(counts, 5) ? 40 : 0);
+    result.put(Category.EVEN, (counts[2] + counts[4] + counts[6] == 5) ? totalSum : 0);
+    result.put(Category.ODD,  (counts[1] + counts[3] + counts[5] == 5) ? totalSum : 0);
     result.put(Category.YAHTZEE, hasCount(counts, 5) ? 50 : 0);
     result.put(Category.CHANCE, totalSum);
 

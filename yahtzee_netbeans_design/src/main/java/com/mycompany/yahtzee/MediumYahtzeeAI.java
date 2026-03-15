@@ -92,7 +92,7 @@ public class MediumYahtzeeAI implements YahtzeeAI{
                 
                 // Boost value if this helps toward bonus
                 if (score >= avgNeeded * 0.8) {
-                    value += 8; // Incentivize working toward bonus
+                    value += 8; 
                 }
                 
                 // Extra boost if we're close to bonus
@@ -136,11 +136,14 @@ public class MediumYahtzeeAI implements YahtzeeAI{
 
     private double estimateScore(Dice[] currentDice, Set<Integer> keep, 
                                 ScoreCard scoreCard, int rollsLeft) {
-        int total = 0;
+        double total = 0;
 
-        for (int t = 0; t < TRIALS; t++) {
-            Dice[] diceCopy = Arrays.copyOf(currentDice, 5);
-
+       for (int t = 0; t < TRIALS; t++) {
+            Dice[] diceCopy = new Dice[5];
+            for (int i = 0; i < 5; i++) {
+                diceCopy[i] = currentDice[i].copy();
+            }
+            
             // Simulate remaining rolls
             for (int r = 0; r < rollsLeft; r++) {
                 for (int i = 0; i < 5; i++) {
@@ -212,19 +215,15 @@ public class MediumYahtzeeAI implements YahtzeeAI{
     }
 
     private int getUpperSectionNeeded(ScoreCard scoreCard) {
-        // Returns how many more points needed for 63 (bonus threshold)
-        int total = 0;
-        Category[] upper = {Category.ONES, Category.TWOS, Category.THREES,
-                           Category.FOURS, Category.FIVES, Category.SIXES};
-        
-        for (Category c : upper) {
-            if (scoreCard.isCategoryFilled(c)) {
-                // We need access to actual scores - for now estimate
-                total += 10; // This is a limitation without scoreCard.getScore()
-            }
+       Map<Category, Integer> scores = scoreCard.getScores();
+        int currentUpper = 0;
+        for (Category c : new Category[]{
+                Category.ONES, Category.TWOS, Category.THREES,
+                Category.FOURS, Category.FIVES, Category.SIXES}) {
+            Integer v = scores.get(c);
+            if (v != null) currentUpper += v;
         }
-        
-        return Math.max(0, 63 - total);
+        return Math.max(0, 63 - currentUpper);
     }
 
     private int getUpperCategoriesLeft(ScoreCard scoreCard) {

@@ -25,6 +25,7 @@ public class Player {
         complete = false;
     }
     
+    /*
     public Dice[] rollDice()
     {
         Dice[] ds = new Dice[5];
@@ -33,6 +34,16 @@ public class Player {
         }
         return ds;
     }
+    */
+        public Dice[] rollDice() {
+        Dice[] ds = new Dice[5];
+        for (int i = 0; i < ds.length; i++) {
+            ds[i] = new Dice();
+            ds[i].roll();
+        }
+        return ds;
+    }
+        
     public void resetTurn(){
         rolls = 3; 
         keptDice = new boolean[5];

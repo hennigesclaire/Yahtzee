@@ -26,4 +26,15 @@ class Dice{
     public int getValue() {
         return value;
     }
+    
+      public void setValue(int value) {
+        this.value = value;
+    }
+ 
+    // Let's AI safely simulate rolls without mutating live dice
+    public Dice copy() {
+        Dice d = new Dice();
+        d.setValue(this.value);
+        return d;
+    }
 }

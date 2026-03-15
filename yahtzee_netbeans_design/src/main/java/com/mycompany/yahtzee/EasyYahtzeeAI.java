@@ -57,16 +57,20 @@ public class EasyYahtzeeAI implements YahtzeeAI {
         int trials = 2000;//The higher the number, the higher the accuracy
         int total = 0;
 
-        for (int t = 0; t < trials; t++) {
-            Dice[] diceCopy = Arrays.copyOf(currentDice, 5);
-
-            // roll remaining dice
-            for (int r = 0; r < rollsLeft; r++) {
-                for (int i = 0; i < 5; i++) {
-                    if (!keep.contains(i)) diceCopy[i].roll();
+        for (int t = 0; t < trials; t++) 
+        {
+           Dice[] diceCopy = new Dice[5];
+            for (int i = 0; i < 5; i++) 
+            {
+                diceCopy[i] = currentDice[i].copy();
+            }
+            
+        for (int i = 0; i < 5; i++) {
+                if (!keep.contains(i)) {
+                    diceCopy[i].roll();
                 }
             }
-
+            
             // Evaluating best score per category
             Map<Category,Integer> possible = scoreCard.calculatePossibleScores(diceCopy);
             int best = possible.values().stream().max(Integer::compareTo).orElse(0);
