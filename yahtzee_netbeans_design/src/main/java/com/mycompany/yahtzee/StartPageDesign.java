@@ -16,7 +16,6 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.GradientPaint;
 
 
 import javax.swing.BorderFactory;
@@ -794,7 +793,7 @@ class RoundedTextField extends JTextField {
     public void setBounds(int x, int y, int w, int h) {
         super.setBounds(x, y, w, h);
         int fontSize = Math.max(18, (int)(h * 0.45));
-        setFont(new Font("Times New Roman", Font.BOLD, fontSize));
+        setFont(new Font("TW Cen MT Condensed", Font.BOLD, fontSize));
     }
 
     @Override
