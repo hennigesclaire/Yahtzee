@@ -34,12 +34,13 @@ public class ScoreCardTableModel extends AbstractTableModel {
         Category c = categories[rowIndex];
         switch (columnIndex) {
             case 0: return c.name();
-            case 1: 
-               if (scoreCard.isCategoryFilled(c)) {
-                return scoreCard.getScores().get(c);
-            } else {
-                return possibleScores.getOrDefault(c, 0);
-            }
+            case 1:
+                if (scoreCard.isCategoryFilled(c)) {
+                    return scoreCard.getScores().get(c);
+                } else {
+                    Integer possible = possibleScores.get(c);
+                    return (possible != null) ? possible : "";  
+                }
             default: return "";
         }
     }

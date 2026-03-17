@@ -12,7 +12,14 @@ import java.util.*;
 
 public class MediumYahtzeeAI implements YahtzeeAI{
     private static final int TRIALS = 1000; 
-    
+    private static final Category[] PLAYABLE = {
+        Category.ONES, Category.TWOS, Category.THREES,
+        Category.FOURS, Category.FIVES, Category.SIXES,
+        Category.THREE_OF_A_KIND, Category.FOUR_OF_A_KIND,
+        Category.FULL_HOUSE, Category.SMALL_STRAIGHT,
+        Category.LARGE_STRAIGHT, Category.EVEN, Category.ODD,
+        Category.YAHTZEE, Category.CHANCE
+    };
     public Set<Integer> chooseDiceToKeep(Dice[] currentDice, ScoreCard scoreCard, int rollsLeft) {
         // Quick filters to speed up decisions
         if (rollsLeft == 0) return new HashSet<>();
@@ -55,19 +62,14 @@ public class MediumYahtzeeAI implements YahtzeeAI{
         double bestValue = Double.NEGATIVE_INFINITY;
        
 
-        for (var entry : possible.entrySet()) {
-            if (!scoreCard.isCategoryFilled(entry.getKey())) {
-                // Apply strategic value calculation
-                double strategicValue = calculateStrategicValue(
-                    entry.getKey(), 
-                    entry.getValue(), 
-                    scoreCard,
-                    possible
-                );
-                
+        for (Category c : PLAYABLE) {                         // ← only playable categories
+            if (!scoreCard.isCategoryFilled(c)) {
+                Integer score = possible.get(c);
+                if (score == null) continue;
+                double strategicValue = calculateStrategicValue(c, score, scoreCard, possible);
                 if (strategicValue > bestValue) {
                     bestValue = strategicValue;
-                    best = entry.getKey();
+                    best = c;
                 }
             }
         }
@@ -115,7 +117,7 @@ public class MediumYahtzeeAI implements YahtzeeAI{
         
         // Strategic Filter 3: Late game - grab points when available
         int remainingCategories = 0;
-        for (Category c : Category.values()) {
+        for (Category c : PLAYABLE) {
             if (!scoreCard.isCategoryFilled(c)) remainingCategories++;
         }
         
@@ -158,18 +160,14 @@ public class MediumYahtzeeAI implements YahtzeeAI{
             Map<Category, Integer> possible = scoreCard.calculatePossibleScoresint(values);
             double bestScore = 0;
             
-            for (var entry : possible.entrySet()) {
-                if (!scoreCard.isCategoryFilled(entry.getKey())) {
-                    double strategicValue = calculateStrategicValue(
-                        entry.getKey(), 
-                        entry.getValue(), 
-                        scoreCard,
-                        possible
-                    );
-                    bestScore = Math.max(bestScore, strategicValue);
+            for (Category c : PLAYABLE) {                     // ← only playable categories
+                if (!scoreCard.isCategoryFilled(c)) {
+                    Integer s = possible.get(c);
+                    if (s == null) continue;
+                    double sv = calculateStrategicValue(c, s, scoreCard, possible);
+                    bestScore = Math.max(bestScore, sv);
                 }
             }
-            
             total += bestScore;
         }
         return (double) total / TRIALS;

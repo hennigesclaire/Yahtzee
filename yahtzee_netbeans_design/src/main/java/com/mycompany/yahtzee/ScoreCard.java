@@ -197,7 +197,29 @@ public void updateTotals() {
 private int getOrZero(Category c) {
     return scores.get(c) == null ? 0 : scores.get(c);
 }
+// Add these three methods to ScoreCard.java
 
+public int getUpperRawScore() {
+    int upper = 0;
+    upper += getOrZero(Category.ONES);
+    upper += getOrZero(Category.TWOS);
+    upper += getOrZero(Category.THREES);
+    upper += getOrZero(Category.FOURS);
+    upper += getOrZero(Category.FIVES);
+    upper += getOrZero(Category.SIXES);
+    return upper;
+}
+
+public int getLowerRawScore() {
+    return getOrZero(Category.LOWER_SCORE);
+}
+
+public int getBonusScore() {
+    return getOrZero(Category.BONUS);  // already 35 or 0 from updateTotals()
+}
+public int getTotalScore() {
+    return getOrZero(Category.TOTAL);
+}
 
     public void assignScore(int choice, Map<Category, Integer> possibleScores) {
         Category c = Category.values()[choice - 1];
@@ -209,10 +231,16 @@ private int getOrZero(Category c) {
     }
 
     public boolean isFull() {
-        for (Category c : Category.values()) {
-            if (scores.get(c) == null) { 
-                return false;
-            }
+        Category[] playable = {
+            Category.ONES, Category.TWOS, Category.THREES,
+            Category.FOURS, Category.FIVES, Category.SIXES,
+            Category.THREE_OF_A_KIND, Category.FOUR_OF_A_KIND,
+            Category.FULL_HOUSE, Category.SMALL_STRAIGHT,
+            Category.LARGE_STRAIGHT, Category.EVEN, Category.ODD,
+            Category.YAHTZEE, Category.CHANCE
+        };
+        for (Category c : playable) {
+            if (scores.get(c) == null) return false;
         }
         return true;
     }
@@ -222,12 +250,7 @@ private int getOrZero(Category c) {
  public boolean isCategoryFilled(Category c) {
     return scores.get(c) != null;  
 }
-public int getTotalScore() {
-    int upper = getOrZero(Category.UPPER_SCORE);
-    int bonus = getOrZero(Category.BONUS);
-    int lower = getOrZero(Category.LOWER_SCORE);
-    return upper + bonus + lower;
-}
+
 
 
 

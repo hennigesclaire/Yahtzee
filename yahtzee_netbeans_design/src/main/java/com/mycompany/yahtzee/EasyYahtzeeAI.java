@@ -8,6 +8,14 @@ import java.util.*;
 // I'll use the Monte Carlo Tree Search to simulate a harder AI if need be. 
 
 public class EasyYahtzeeAI implements YahtzeeAI {
+     private static final Category[] PLAYABLE = {
+        Category.ONES, Category.TWOS, Category.THREES,
+        Category.FOURS, Category.FIVES, Category.SIXES,
+        Category.THREE_OF_A_KIND, Category.FOUR_OF_A_KIND,
+        Category.FULL_HOUSE, Category.SMALL_STRAIGHT,
+        Category.LARGE_STRAIGHT, Category.EVEN, Category.ODD,
+        Category.YAHTZEE, Category.CHANCE
+    };
     public Set<Integer> chooseDiceToKeep(Dice[] currentDice, ScoreCard scoreCard, int rollsLeft) {
         Set<Integer> bestKeep = new HashSet<>();
         double bestScore = Double.NEGATIVE_INFINITY;
@@ -37,10 +45,13 @@ public class EasyYahtzeeAI implements YahtzeeAI {
         Category best = null;
         int bestVal = -1;
 
-        for (var entry : possible.entrySet()) {
-            if (!scoreCard.isCategoryFilled(entry.getKey()) && entry.getValue() > bestVal) {
-                bestVal = entry.getValue();
-                best = entry.getKey();
+        for (Category c : PLAYABLE) {                        // ← only playable categories
+            if (!scoreCard.isCategoryFilled(c)) {
+                Integer val = possible.get(c);
+                if (val != null && val > bestVal) {
+                    bestVal = val;
+                    best = c;
+                }
             }
         }
         return best;
@@ -64,16 +75,19 @@ public class EasyYahtzeeAI implements YahtzeeAI {
             {
                 diceCopy[i] = currentDice[i].copy();
             }
+            for (int i = 0; i < 5; i++) {
+                if (!keep.contains(i)) diceCopy[i].roll();
+            }
+ 
             
-        for (int i = 0; i < 5; i++) {
-                if (!keep.contains(i)) {
-                    diceCopy[i].roll();
+            Map<Category, Integer> possible = scoreCard.calculatePossibleScores(diceCopy);
+            int best = 0;
+            for (Category c : PLAYABLE) {                    // ← only playable categories
+                if (!scoreCard.isCategoryFilled(c)) {
+                    Integer v = possible.get(c);
+                    if (v != null && v > best) best = v;
                 }
             }
-            
-            // Evaluating best score per category
-            Map<Category,Integer> possible = scoreCard.calculatePossibleScores(diceCopy);
-            int best = possible.values().stream().max(Integer::compareTo).orElse(0);
             total += best;
         }
         return (double) total / trials;

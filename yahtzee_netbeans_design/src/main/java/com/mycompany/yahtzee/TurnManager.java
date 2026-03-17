@@ -30,8 +30,9 @@ public class TurnManager {
     
     public Player nextPlayer()
     {
+        this.playerList.rotate();
         this.a.rotate();
-        return this.playerList.next();
+        return this.playerList.first();
     }
     
     public void addPlayer(Player p)
@@ -121,13 +122,30 @@ public class TurnManager {
     public boolean completeGame()
     {
         boolean temp = true;
-        for(int i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
-            temp = a.first().isFull();
+            if (!a.first().isFull()) temp = false;
             this.a.rotate();
-            if(!temp) break;
         }
         return temp;
     }
-    
+    public java.util.List<Player> getPlayers() 
+    {
+    java.util.List<Player> result = new java.util.ArrayList<>();
+    for (int i = 0; i < count; i++) {
+        result.add(playerList.first());
+        playerList.rotate();
+    }
+    return result;
+    }
+
+    public java.util.List<ScoreCard> getScoreCards() 
+    {
+        java.util.List<ScoreCard> result = new java.util.ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            result.add(a.first());
+            a.rotate();
+        }
+        return result;
+    }
 }

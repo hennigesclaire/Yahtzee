@@ -14,8 +14,8 @@ com\mycompany\yahtzee\MediumYahtzeeAI.class
 com\mycompany\yahtzee\YahtzeeDesign$1.class
 com\mycompany\yahtzee\CircularLinkedList$Node.class
 com\mycompany\yahtzee\StartPageDesign$AIPlayerComponents.class
-com\mycompany\yahtzee\GlassPanelScoreCard.class
 com\mycompany\yahtzee\StartPageDesign$4.class
+com\mycompany\yahtzee\BonusProgressBar.class
 com\mycompany\yahtzee\Yahtzee.class
 com\mycompany\yahtzee\EndPage.class
 com\mycompany\yahtzee\EasyYahtzeeAI.class

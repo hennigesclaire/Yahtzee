@@ -37,16 +37,13 @@ public class DiceComponent extends JButton {
         int w = getWidth();
         int h = getHeight();
 
-        // Rounded white background
         g2.setColor(Color.WHITE);
         g2.fillRoundRect(0, 0, w, h, 20, 20);
 
-        // Thin border
         g2.setColor(new Color(180, 180, 180));
         g2.setStroke(new BasicStroke(1.5f));
         g2.drawRoundRect(1, 1, w - 2, h - 2, 20, 20);
 
-        // ... rest of pip drawing unchanged (remove the old super.paintComponent(g) call)
 
         int pipSize = Math.min(w, h) / 6;
 
