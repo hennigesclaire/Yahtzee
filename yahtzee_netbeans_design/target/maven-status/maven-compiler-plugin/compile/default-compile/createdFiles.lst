@@ -16,6 +16,7 @@ com\mycompany\yahtzee\CircularLinkedList$Node.class
 com\mycompany\yahtzee\StartPageDesign$AIPlayerComponents.class
 com\mycompany\yahtzee\StartPageDesign$4.class
 com\mycompany\yahtzee\BonusProgressBar.class
+com\mycompany\yahtzee\YahtzeeDesign$7.class
 com\mycompany\yahtzee\Yahtzee.class
 com\mycompany\yahtzee\EndPage.class
 com\mycompany\yahtzee\EasyYahtzeeAI.class
@@ -25,6 +26,7 @@ com\mycompany\yahtzee\GameFramePanel.class
 com\mycompany\yahtzee\YahtzeeDesign.class
 com\mycompany\yahtzee\Interface.class
 com\mycompany\yahtzee\ArchPanel.class
+com\mycompany\yahtzee\YahtzeeDesign$6.class
 com\mycompany\yahtzee\CircularLinkedList.class
 com\mycompany\yahtzee\GlassPanel.class
 com\mycompany\yahtzee\AIStartPage$4.class
@@ -33,6 +35,7 @@ com\mycompany\yahtzee\YahtzeeAI.class
 com\mycompany\yahtzee\StartPageDesign$3.class
 com\mycompany\yahtzee\TurnManager.class
 com\mycompany\yahtzee\OutlinedLabel.class
+com\mycompany\yahtzee\YahtzeeDesign$8.class
 com\mycompany\yahtzee\AIStartPage.class
 com\mycompany\yahtzee\Dice.class
 com\mycompany\yahtzee\ScoreCard.class

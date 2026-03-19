@@ -6,6 +6,10 @@ package com.mycompany.yahtzee;
 import javax.swing.table.AbstractTableModel;
 import java.util.*;
 
+/**
+ *
+ * @author henni
+ */
 
 public class ScoreCardTableModel extends AbstractTableModel {
     private final ScoreCard scoreCard;
@@ -33,7 +37,12 @@ public class ScoreCardTableModel extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         Category c = categories[rowIndex];
         switch (columnIndex) {
-            case 0: return c.name();
+            case 0:
+            String raw = c.name().replace("_", " ");
+            String pretty = Arrays.stream(raw.split(" "))
+                .map(w -> w.charAt(0) + w.substring(1).toLowerCase())
+                .collect(java.util.stream.Collectors.joining(" "));
+            return pretty;
             case 1:
                 if (scoreCard.isCategoryFilled(c)) {
                     return scoreCard.getScores().get(c);

@@ -169,35 +169,18 @@ public void updateTotals() {
     lower += getOrZero(Category.ODD);
     lower += getOrZero(Category.YAHTZEE);
     lower += getOrZero(Category.CHANCE);
-    
-    int total =0;
-    total += getOrZero(Category.ONES);
-    total += getOrZero(Category.TWOS);
-    total += getOrZero(Category.THREES);
-    total += getOrZero(Category.FOURS);
-    total += getOrZero(Category.FIVES);
-    total += getOrZero(Category.SIXES);
-    total += getOrZero(Category.THREE_OF_A_KIND);
-    total += getOrZero(Category.FOUR_OF_A_KIND);
-    total += getOrZero(Category.FULL_HOUSE);
-    total += getOrZero(Category.SMALL_STRAIGHT);
-    total += getOrZero(Category.LARGE_STRAIGHT);
-    total += getOrZero(Category.EVEN);
-    total += getOrZero(Category.ODD);
-    total += getOrZero(Category.YAHTZEE);
-    total += getOrZero(Category.CHANCE);
-    total += getOrZero(Category.BONUS);
 
     scores.put(Category.UPPER_SCORE, upper);
     scores.put(Category.BONUS, bonus);
     scores.put(Category.LOWER_SCORE, lower);
+
+    int total = upper + bonus + lower;
     scores.put(Category.TOTAL, total);
 }
 
 private int getOrZero(Category c) {
     return scores.get(c) == null ? 0 : scores.get(c);
 }
-// Add these three methods to ScoreCard.java
 
 public int getUpperRawScore() {
     int upper = 0;

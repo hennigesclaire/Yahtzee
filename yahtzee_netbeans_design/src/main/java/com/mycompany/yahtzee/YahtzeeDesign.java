@@ -2,12 +2,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-
-package com.mycompany.yahtzee;
-/**
+/*
  *
  * @author henni
  */
+
+
+package com.mycompany.yahtzee;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,7 +24,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 public class YahtzeeDesign extends javax.swing.JFrame {
 
@@ -45,9 +45,13 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private ScoreCardTableModel lowerModel;
     private Dice[] currentRoll;
     private int rollCount  = 0;
+    private boolean firstRollDone = false;
     private boolean turnActive = true;
+    private ScoreCellRenderer upperRenderer;
+    private ScoreCellRenderer lowerRenderer;
     private Category pendingCategory = null;
     private TurnManager t = null;
+    private java.util.function.Consumer<Float> panelFlipper = p -> {};
 
     public static final Category[] UPPER = {
         Category.ONES, Category.TWOS, Category.THREES, Category.FOURS,
@@ -85,7 +89,6 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private javax.swing.JLabel die1Label, die2Label, die3Label, die4Label, die5Label;
 
     private RoundedButton jButton1;   // Roll
-    private RoundedButton jButton2;   // End Game
 
     private Font uiFont(float size) {
         return new Font("Bauhaus 93", Font.BOLD, (int) size);
@@ -119,7 +122,6 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         jLayeredPane1.setOpaque(true);
         jLayeredPane1.setBackground(new Color(250, 235, 137));
 
-        // Decorative frame (same as before)
         GameFramePanel frameArch = new GameFramePanel();
         frameArch.setOpaque(false);
         SwingUtilities.invokeLater(() -> {
@@ -150,54 +152,72 @@ public class YahtzeeDesign extends javax.swing.JFrame {
 
         jLayeredPane1.add(leaderboardPanel);
 
-        jPanel2 = new GlassPanel();
+        jPanel2 = new GlassPanel() {
+            float flipPhase = 1.0f;
+            public void setPanelFlipPhase(float p) { flipPhase = p; repaint(); }
+            @Override
+            public void paint(java.awt.Graphics g) {
+                if (flipPhase >= 1.0f) { super.paint(g); return; }
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                int cx = getWidth() / 2;
+                int cy = getHeight() / 2;
+                g2.translate(cx, cy);
+                g2.scale(flipPhase, 1.0);
+                g2.translate(-cx, -cy);
+                super.paint(g2);
+                g2.dispose();
+            }
+        };
+        panelFlipper = p -> {};
+        try {
+            java.lang.reflect.Method m = jPanel2.getClass().getMethod("setPanelFlipPhase", float.class);
+            panelFlipper = phase -> { try { m.invoke(jPanel2, phase); } catch(Exception ex){} };
+        } catch (NoSuchMethodException ex) {}
         jPanel2.setLayout(null);
 
+        summaryPlayerName = new javax.swing.JLabel("Player 1");
+        summaryPlayerName.setFont(uiFont(26f));
+        summaryPlayerName.setForeground(new Color(180, 30, 30));
+        summaryPlayerName.setHorizontalAlignment(SwingConstants.CENTER);
+        jPanel2.add(summaryPlayerName);
+
         UpperSectionLabel = new javax.swing.JLabel("Upper Section");
-        UpperSectionLabel.setFont(uiFont(14f));
+        UpperSectionLabel.setFont(uiFont(15f));
         UpperSectionLabel.setForeground(new Color(100, 50, 0));
 
         jTable1 = makeTable();
+        jTable1.setIntercellSpacing(new Dimension(0, 0));
         jScrollPane1 = makeScrollPane(jTable1);
 
         LowerSectionLabel = new javax.swing.JLabel("Lower Section");
-        LowerSectionLabel.setFont(uiFont(14f));
+        LowerSectionLabel.setFont(uiFont(15f));
         LowerSectionLabel.setForeground(new Color(100, 50, 0));
 
         jTable2 = makeTable();
+        jTable2.setIntercellSpacing(new Dimension(0, 0));
         jScrollPane2 = makeScrollPane(jTable2);
 
         jPanel2.add(UpperSectionLabel);
         jPanel2.add(jScrollPane1);
         jPanel2.add(LowerSectionLabel);
         jPanel2.add(jScrollPane2);
-        jLayeredPane1.add(jPanel2);
-
-        summaryPanel = new GlassPanel();
-        summaryPanel.setLayout(null);
-
-        summaryPlayerName = new javax.swing.JLabel("Player 1");
-        summaryPlayerName.setFont(uiFont(26f));
-        summaryPlayerName.setForeground(new Color(180, 30, 30));
-        summaryPlayerName.setHorizontalAlignment(SwingConstants.CENTER);
-        summaryPanel.add(summaryPlayerName);
 
         summaryUpperLabel = makeSummaryLabel("Upper Section");
         summaryUpperVal   = makeSummaryValue("0");
-        summaryPanel.add(summaryUpperLabel);
-        summaryPanel.add(summaryUpperVal);
+        jPanel2.add(summaryUpperLabel);
+        jPanel2.add(summaryUpperVal);
 
         summaryBonusLabel = makeSummaryLabel("Bonus");
         summaryBonusVal   = makeSummaryValue("–");
         bonusBar = new BonusProgressBar();
-        summaryPanel.add(summaryBonusLabel);
-        summaryPanel.add(bonusBar);
-        summaryPanel.add(summaryBonusVal);
+        jPanel2.add(summaryBonusLabel);
+        jPanel2.add(bonusBar);
+        jPanel2.add(summaryBonusVal);
 
         summaryLowerLabel = makeSummaryLabel("Lower Section");
         summaryLowerVal   = makeSummaryValue("0");
-        summaryPanel.add(summaryLowerLabel);
-        summaryPanel.add(summaryLowerVal);
+        jPanel2.add(summaryLowerLabel);
+        jPanel2.add(summaryLowerVal);
 
         summaryTotalLabel = makeSummaryLabel("Total");
         summaryTotalLabel.setFont(uiFont(22f));
@@ -205,10 +225,12 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         summaryTotalVal   = makeSummaryValue("0");
         summaryTotalVal.setFont(uiFont(22f));
         summaryTotalVal.setForeground(new Color(180, 30, 30));
-        summaryPanel.add(summaryTotalLabel);
-        summaryPanel.add(summaryTotalVal);
+        jPanel2.add(summaryTotalLabel);
+        jPanel2.add(summaryTotalVal);
 
-        jLayeredPane1.add(summaryPanel);
+        jLayeredPane1.add(jPanel2);
+
+        summaryPanel = jPanel2;
 
         jPanel1 = new javax.swing.JPanel(null);
         jPanel1.setOpaque(false);
@@ -217,13 +239,19 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         die3 = makeDieButton(); die4 = makeDieButton(); die5 = makeDieButton();
         die1Label = makeDieLabel(); die2Label = makeDieLabel();
         die3Label = makeDieLabel(); die4Label = makeDieLabel(); die5Label = makeDieLabel();
-
+        
         die1.addActionListener(e -> die1ActionPerformed(e));
         die2.addActionListener(e -> die2ActionPerformed(e));
         die3.addActionListener(e -> die3ActionPerformed(e));
         die4.addActionListener(e -> die4ActionPerformed(e));
         die5.addActionListener(e -> die5ActionPerformed(e));
-
+        
+        die1.setEnabled(false); 
+        die2.setEnabled(false); 
+        die3.setEnabled(false);
+        die4.setEnabled(false); 
+        die5.setEnabled(false);
+        
         for (DiceComponent b : new DiceComponent[]{die1, die2, die3, die4, die5}) jPanel1.add(b);
         for (javax.swing.JLabel l : new javax.swing.JLabel[]{die1Label, die2Label, die3Label, die4Label, die5Label}) jPanel1.add(l);
         jLayeredPane1.add(jPanel1);
@@ -232,11 +260,6 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         jButton1.setFont(uiFont(30f));
         jButton1.addActionListener(e -> jButton1ActionPerformed(e));
         jLayeredPane1.add(jButton1);
-
-        jButton2 = new RoundedButton("End Game");
-        jButton2.setFont(uiFont(20f));
-        jButton2.addActionListener(e -> jButton2ActionPerformed(e));
-        jLayeredPane1.add(jButton2);
 
         getContentPane().setLayout(new java.awt.BorderLayout());
         getContentPane().add(jLayeredPane1, java.awt.BorderLayout.CENTER);
@@ -262,29 +285,31 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         int H = jLayeredPane1.getHeight();
         if (W == 0 || H == 0) return;
 
-        int border = 110;
-        int iL = border;
-        int iT = border;          
-        int iR = W - border;
-        int iB = H - border;
+
+        int frameArm = 81;
+        int frameBuffer = 40;  
+        int smallBorder = 28;  // margins
+        int iL = frameArm + frameBuffer;
+        int iT = smallBorder;          
+        int iR = W - smallBorder;
+        int iB = H - smallBorder;
         int iW = iR - iL;
         int iH = iB - iT;
 
+        int diceBottomBuffer = smallBorder + 50;
         int diceStripH = (int)(iH * 0.20);
-        int diceStripY = iB - diceStripH + (int)(H * 0.04);
-        int contentH   = diceStripY - iT - 6;   // height above dice strip
+        int diceStripY = H - diceBottomBuffer - diceStripH;
+        int panelGap   = 10;  
+        int contentH   = diceStripY - iT - panelGap;   
 
-        // ── Horizontal thirds ─────────────────────────────────────────
-        // Left  ~26%  → Leaderboard
-        // Center ~34% → Scorecard (thin)
-        // Right ~40%  → Player summary
-        int lbW  = (int)(iW * 0.20);
-        int scW  = (int)(iW * 0.34);
-        int sumW = iW - lbW - scW - 16;   
-
-        int lbX  = iL;
-        int scX  = lbX + lbW + 8;
-        int sumX = scX + scW + 8;
+        int gap = (int)(iW * 0.09);
+        int lbW = (int)(iW * 0.22);
+        int btnWCalc = (int)((lbW));
+        int btnXCalc = iL + (lbW - btnWCalc) / 2;
+        int lbX = btnXCalc;
+        lbW = btnWCalc;
+        int combX = iL + (int)(iW * 0.22) + gap;
+        int combW = iR - combX;
 
         leaderboardPanel.setBounds(lbX, iT, lbW, contentH);
         int lbPad = 10;
@@ -294,109 +319,116 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         leaderboardList.setBounds(lbPad, lbPad + titleH + 4, lbW - lbPad * 2, contentH - titleH - lbPad * 3);
         refreshLeaderboard();
 
-        jPanel2.setBounds(scX, iT, scW, contentH);
+        jPanel2.setBounds(combX, iT, combW, contentH);
         {
-            int pad     = 8;
-            int labelH  = Math.max(18, (int)(contentH * 0.040));
-            int gap     = Math.max(3,  (int)(contentH * 0.012));
-            int available = contentH - labelH * 2 - gap * 3 - pad * 2;
-            int upperRows = UPPER.length + 1;
-            int lowerRows = LOWER.length + 1;
-            int upperH  = (available * upperRows) / (upperRows + lowerRows);
-            int lowerH  = available - upperH;
+            int pad    = 12;
+            int nameH  = Math.max(32, (int)(contentH * 0.10));
 
-            int cy = pad;
-            UpperSectionLabel.setFont(uiFont(Math.max(10f, labelH * 0.70f)));
+            summaryPlayerName.setFont(uiFont(Math.max(15f, nameH * 0.70f)));
+            summaryPlayerName.setBounds(pad, pad, combW - pad * 2, nameH);
+
+            int contentTop = pad + nameH + 6;
+            int contentBot = contentH - pad;
+            int bodyH = contentBot - contentTop;
+
+            int scW  = (int)(combW * 0.55);
+            int sumX = scW + pad;
+
+            int labelH = Math.max(22, (int)(bodyH * 0.055));
+            int tableGap = Math.max(4,  (int)(bodyH * 0.015));
+            int upperRows = UPPER.length ;
+            int lowerRows = LOWER.length ;
+
+            int rowH = Math.max(22, (int)(bodyH * 0.035));
+            jTable1.setRowHeight(rowH);
+            jTable2.setRowHeight(rowH);
+
+            int upperH = upperRows * rowH;
+            int lowerH = lowerRows * rowH;
+
+            int cy = contentTop;
+            UpperSectionLabel.setFont(uiFont(Math.max(13f, labelH )));
             UpperSectionLabel.setBounds(pad, cy, scW - pad * 2, labelH);
             cy += labelH + 2;
             jScrollPane1.setBounds(pad, cy, scW - pad * 2, upperH);
-            jTable1.setRowHeight(Math.max(14, upperH / (upperRows)));
-            cy += upperH + gap;
-            LowerSectionLabel.setFont(uiFont(Math.max(10f, labelH * 0.70f)));
+            jTable1.setRowHeight(rowH);
+            jTable2.setRowHeight(rowH);
+            int upperTableEndY = cy + upperH; 
+            cy += upperH + tableGap;
+
+            int extraLowerSpace = (int)(rowH);
+            cy += extraLowerSpace;
+
+            LowerSectionLabel.setFont(uiFont(Math.max(13f, labelH )));
             LowerSectionLabel.setBounds(pad, cy, scW - pad * 2, labelH);
             cy += labelH + 2;
             jScrollPane2.setBounds(pad, cy, scW - pad * 2, lowerH);
-            jTable2.setRowHeight(Math.max(14, lowerH / (lowerRows)));
-        }
 
-        summaryPanel.setBounds(sumX, iT, sumW, contentH);
-        {
-            int pad  = 14;
-            int nameH = Math.max(30, (int)(contentH * 0.10));
-            summaryPlayerName.setFont(uiFont(Math.max(15f, nameH * 0.58f)));
-            summaryPlayerName.setBounds(pad, pad, sumW - pad * 2, nameH);
+           int summaryRowH = Math.max(30, (int)(bodyH * 0.11)); 
+           int barH = Math.max(18, (int)(summaryRowH * 0.45));
+           int valX = combW - pad - 70;
+           int lblW2 = valX - sumX - 4;
 
+           // Upper score
+           int upperRowY = contentTop + labelH + 2;
+           summaryUpperLabel.setFont(uiFont(Math.max(14f, summaryRowH * 0.60f)));
+           summaryUpperLabel.setBounds(sumX, upperRowY, lblW2, summaryRowH);
+           summaryUpperVal.setFont(uiFont(Math.max(14f, summaryRowH * 0.60f)));
+           summaryUpperVal.setBounds(valX, upperRowY, 70, summaryRowH);
 
-            int rowH   = Math.max(28, (int)(contentH * 0.10));
-            int barH   = Math.max(18, (int)(rowH * 0.45));
-            int rowGap = Math.max(8,  (int)(contentH * 0.025));
-            int rowY   = pad + nameH + rowGap * 2;
-            int valX   = sumW - pad - 60;
-            int lblW   = valX - pad - 4;
+           // Bonus
+           int bonusRowY = (int)(upperTableEndY + contentTop + labelH * 8.5 + 2 + tableGap) / 2 - summaryRowH / 2;
+           summaryBonusLabel.setFont(uiFont(Math.max(13f, summaryRowH * 0.55f)));
+           summaryBonusLabel.setBounds(sumX, bonusRowY, 80, summaryRowH);
+           int barX = sumX + 85;
+           int barW = combW - barX - pad - 70;
+           bonusBar.setBounds(barX, bonusRowY + (summaryRowH - barH) / 2, barW, barH);
+           summaryBonusVal.setFont(uiFont(Math.max(13f, summaryRowH * 0.55f)));
+           summaryBonusVal.setBounds(valX, bonusRowY, 70, summaryRowH);
 
-            summaryUpperLabel.setFont(uiFont(Math.max(13f, rowH * 0.55f)));
-            summaryUpperLabel.setBounds(pad, rowY, lblW, rowH);
-            summaryUpperVal.setFont(uiFont(Math.max(13f, rowH * 0.55f)));
-            summaryUpperVal.setBounds(valX, rowY, 60, rowH);
-            rowY += rowH + rowGap;
+           // Lower score
+           int totalRowY = contentH - pad - summaryRowH;
+           int lowerRowY = totalRowY - summaryRowH - 8;
+           summaryLowerLabel.setFont(uiFont(Math.max(14f, summaryRowH * 0.60f)));
+           summaryLowerLabel.setBounds(sumX, lowerRowY, lblW2, summaryRowH);
+           summaryLowerVal.setFont(uiFont(Math.max(14f, summaryRowH * 0.60f)));
+           summaryLowerVal.setBounds(valX, lowerRowY, 70, summaryRowH);
 
-            summaryBonusLabel.setFont(uiFont(Math.max(12f, rowH * 0.50f)));
-            summaryBonusLabel.setBounds(pad, rowY, 70, rowH);
-            int barX = pad + 75;
-            int barW = sumW - barX - pad - 60;
-            bonusBar.setBounds(barX, rowY + (rowH - barH) / 2, barW, barH);
-            summaryBonusVal.setFont(uiFont(Math.max(12f, rowH * 0.50f)));
-            summaryBonusVal.setBounds(valX, rowY, 60, rowH);
-            rowY += rowH + rowGap;
-
-            summaryLowerLabel.setFont(uiFont(Math.max(13f, rowH * 0.55f)));
-            summaryLowerLabel.setBounds(pad, rowY, lblW, rowH);
-            summaryLowerVal.setFont(uiFont(Math.max(13f, rowH * 0.55f)));
-            summaryLowerVal.setBounds(valX, rowY, 60, rowH);
-
-            int totalRowY = contentH - pad - rowH;
-            summaryTotalLabel.setFont(uiFont(Math.max(15f, rowH * 0.65f)));
-            summaryTotalLabel.setBounds(pad, totalRowY, lblW, rowH);
-            summaryTotalVal.setFont(uiFont(Math.max(15f, rowH * 0.65f)));
-            summaryTotalVal.setBounds(valX, totalRowY, 60, rowH);
+           // Total
+           summaryTotalLabel.setFont(uiFont(Math.max(16f, summaryRowH * 0.70f)));
+           summaryTotalLabel.setBounds(sumX, totalRowY, lblW2, summaryRowH);
+           summaryTotalVal.setFont(uiFont(Math.max(16f, summaryRowH * 0.70f)));
+           summaryTotalVal.setBounds(valX, totalRowY, 70, summaryRowH);
         }
 
 
-        int diceZoneX = scX - iL;       
-        int diceZoneW = (sumX + sumW) - scX;
         jPanel1.setBounds(iL, diceStripY, iR - iL, diceStripH);
 
-        int diceSize  = (int)(diceStripH * 0.68);
-        int spacing   = diceZoneW / 5;
-        int diceOffX  = (spacing - diceSize) / 2;
-        int labelHt   = (int)(diceStripH * 0.17);
-        int labelYd   = (diceStripH - diceSize - labelHt - 2) / 2;
-        int diceY2    = labelYd + labelHt + 2;
+        int diceSize = (int)(diceStripH * 0.68);
+        diceSize = Math.min(diceSize, combW / 5);
+        int innerGap = (combW - 5 * diceSize) / 4;
+        int diceBaseX = combX - iL;   
+        int labelHt = (int)(diceStripH * 0.17);
+        int labelYd = (diceStripH - diceSize - labelHt - 2) / 2;
+        int diceY2 = labelYd + labelHt + 2;
 
-        javax.swing.JButton[] dBtns   = {die1, die2, die3, die4, die5};
-        javax.swing.JLabel[]  dLabels = {die1Label, die2Label, die3Label, die4Label, die5Label};
+        javax.swing.JButton[] dBtns = {die1, die2, die3, die4, die5};
+        javax.swing.JLabel[] dLabels = {die1Label, die2Label, die3Label, die4Label, die5Label};
         for (int i = 0; i < 5; i++) {
-            int slotX = diceZoneX + spacing * i + diceOffX;
-            dLabels[i].setBounds(slotX, labelYd, diceSize, labelHt);
+            int dieX = diceBaseX + i * (diceSize + innerGap);
+            dLabels[i].setBounds(dieX, labelYd, diceSize, labelHt);
             dLabels[i].setFont(uiFont(Math.max(8f, diceStripH * 0.10f)));
-            dBtns[i].setBounds(slotX, diceY2, diceSize, diceSize);
+            dBtns[i].setBounds(dieX, diceY2, diceSize, diceSize);
             if (diceFont != null) dBtns[i].setFont(diceFont.deriveFont((float) diceSize * 0.60f));
         }
 
-        int btnZoneW = scX - iL - 8;                  
-        int btnW     = (int)(btnZoneW * 0.80);
-        int btnX     = iL + (btnZoneW - btnW) / 2;
+        int btnW = btnWCalc;
+        int btnX = btnXCalc;
 
-        int rollH    = (int)(diceStripH * 0.52);
-        int rollY    = diceStripY + diceY2 + (diceStripH - diceY2 - rollH) / 2;
+        int rollH = (int)(diceStripH * 0.52);
+        int rollY = diceStripY + diceY2 + (diceStripH - diceY2 - rollH) / 2;
         jButton1.setBounds(btnX, rollY, btnW, rollH);
         jButton1.setFont(uiFont(Math.max(14f, rollH * 0.38f)));
-
-        int endH = (int)(contentH * 0.13);
-        int endY = iT + (contentH - endH) / 2;
-        jButton2.setBounds(btnX, endY, btnW, endH);
-        jButton2.setFont(uiFont(Math.max(12f, endH * 0.38f)));
-
         jLayeredPane1.revalidate();
         jLayeredPane1.repaint();
     }
@@ -429,11 +461,11 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             icon.setPreferredSize(new Dimension(30, 30));
 
             JLabel name = new JLabel(p.getUsername());
-            name.setFont(uiFont(14f));
+            name.setFont(uiFont(18f));
             name.setForeground(Color.BLACK);
 
             JLabel score = new JLabel(String.valueOf(totalScore));
-            score.setFont(uiFont(14f));
+            score.setFont(uiFont(18f));
             score.setForeground(new Color(100, 50, 0));
             score.setHorizontalAlignment(SwingConstants.RIGHT);
 
@@ -472,7 +504,6 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         summaryPanel.repaint();
     }
 
-    /** Null-safe map lookup — treats null (unfilled) as 0. */
     private static int orZero(java.util.Map<Category, Integer> map, Category c) {
         Integer v = map.get(c);
         return v == null ? 0 : v;
@@ -481,6 +512,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private DiceComponent makeDieButton() {
         DiceComponent b = new DiceComponent();
         b.setBackground(Color.WHITE);
+        b.setValue(0);
         return b;
     }
     private javax.swing.JLabel makeDieLabel() {
@@ -491,69 +523,96 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     }
     private javax.swing.JTable makeTable() {
         javax.swing.JTable t = new javax.swing.JTable();
-        t.setBackground(new Color(255, 255, 220));
-        t.setGridColor(new Color(200, 180, 100));
+        t.setBackground(new Color(255, 248, 220));
+        t.setGridColor(new Color(200, 160, 60));
         t.setRowHeight(26);
-        t.setShowGrid(true);
+        t.setShowGrid(false);
+        t.setIntercellSpacing(new Dimension(0, 0));
+        t.getTableHeader().setBackground(new Color(210, 150, 40));
+        t.getTableHeader().setForeground(Color.WHITE);
+        t.getTableHeader().setFont(new Font("Bauhaus 93", Font.BOLD, 13));
+        t.getTableHeader().setReorderingAllowed(false);
+        t.getTableHeader().setPreferredSize(new Dimension(0, 0));
+        t.getTableHeader().setVisible(false);
         return t;
     }
-    private javax.swing.JScrollPane makeScrollPane(javax.swing.JTable table) {
-        javax.swing.JScrollPane sp = new javax.swing.JScrollPane(table);
-        sp.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(180, 150, 60), 1));
-        sp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-        sp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    private JScrollPane makeScrollPane(JTable table) {
+        JScrollPane sp = new JScrollPane(table);
+        sp.setBorder(BorderFactory.createLineBorder(new Color(180, 150, 60), 1));
+        sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        sp.getViewport().setBackground(new Color(255, 248, 220));
+
         return sp;
     }
 
 
     private void wireScoreCard() {
-        scoreCard  = t.getScoreCard();
+         if (t.getPlayers() == null || t.getPlayers().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No players found!");
+            return;
+        }
+         scoreCard  = t.getScoreCard();
         upperModel = new ScoreCardTableModel(scoreCard, UPPER);
         lowerModel = new ScoreCardTableModel(scoreCard, LOWER);
         jTable1.setModel(upperModel);
         jTable2.setModel(lowerModel);
-        jTable1.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
-        jTable2.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
+        upperRenderer = new ScoreCellRenderer(scoreCard);
 
+        upperRenderer = new ScoreCellRenderer(scoreCard);
+        lowerRenderer = new ScoreCellRenderer(scoreCard);
+        jTable1.getColumnModel().getColumn(0).setCellRenderer(upperRenderer);
+        jTable1.getColumnModel().getColumn(1).setCellRenderer(upperRenderer);
+        jTable2.getColumnModel().getColumn(0).setCellRenderer(lowerRenderer);
+        jTable2.getColumnModel().getColumn(1).setCellRenderer(lowerRenderer);
         this.t.createInterface();
-        summaryPlayerName.setText(this.t.getCurrentPlayer().getUsername());
-        refreshSummary();
-
+        jTable1.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            @Override public void mouseMoved(java.awt.event.MouseEvent e) {
+                int row = jTable1.rowAtPoint(e.getPoint());
+                upperRenderer.setHoveredRow(row);
+                jTable1.repaint();
+            }
+        });
         jTable1.addMouseListener(new MouseAdapter() {
+            @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                upperRenderer.setHoveredRow(-1);
+                jTable1.repaint();
+            }
             @Override public void mouseClicked(MouseEvent e) {
                 int row = jTable1.rowAtPoint(e.getPoint());
                 int col = jTable1.columnAtPoint(e.getPoint());
-                if (row >= 0 && col == 1 && turnActive) {
-                    Category sel = upperModel.getCategoryAt(row);
-                    if (pendingCategory == null || !pendingCategory.equals(sel)) {
-                        pendingCategory = sel;
-                    } else {
-                        finalizeCategorySelection(sel);
-                        refreshSummary();
-                        pendingCategory = null;
-                        turnActive = false;
-                    }
+                if (row >= 0 && col == 1 && turnActive && firstRollDone) {
+                    finalizeCategorySelection(upperModel.getCategoryAt(row));
+                    refreshSummary();
+                    pendingCategory = null;
+                    turnActive = false;
                 }
-            }
-        });
+    }
+});
 
-        jTable2.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) {
-                int row = jTable2.rowAtPoint(e.getPoint());
-                int col = jTable2.columnAtPoint(e.getPoint());
-                if (row >= 0 && col == 1 && turnActive) {
-                    Category sel = lowerModel.getCategoryAt(row);
-                    if (pendingCategory == null || !pendingCategory.equals(sel)) {
-                        pendingCategory = sel;
-                    } else {
-                        finalizeCategorySelection(sel);
-                        refreshSummary();
-                        pendingCategory = null;
-                        turnActive = false;
-                    }
-                }
-            }
-        });
+jTable2.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+    @Override public void mouseMoved(java.awt.event.MouseEvent e) {
+        int row = jTable2.rowAtPoint(e.getPoint());
+        lowerRenderer.setHoveredRow(row);
+        jTable2.repaint();
+    }
+});
+jTable2.addMouseListener(new MouseAdapter() {
+    @Override public void mouseExited(java.awt.event.MouseEvent e) {
+        lowerRenderer.setHoveredRow(-1);
+        jTable2.repaint();
+    }
+    @Override public void mouseClicked(MouseEvent e) {
+        int row = jTable2.rowAtPoint(e.getPoint());
+        int col = jTable2.columnAtPoint(e.getPoint());
+        if (row >= 0 && col == 1 && turnActive && firstRollDone) {
+            finalizeCategorySelection(lowerModel.getCategoryAt(row));
+            refreshSummary();
+            pendingCategory = null;
+            turnActive = false;
+        }
+    }
+});
     }
 
     public int[] getDiceValues() {
@@ -561,13 +620,56 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         for (int i = 0; i < 5; i++) vals[i] = t.getDiceFromInterface()[i];
         return vals;
     }
+    private void spinDie(DiceComponent die) {
+    float[] phases = {0.85f, 0.6f, 0.3f, 0.05f, 1.0f};
+    Timer spinTimer = new Timer(35, null);
+    int[] step = {0};
+    spinTimer.addActionListener(e -> {
+        if (step[0] < phases.length) {
+            die.setSpinPhase(phases[step[0]]);
+            step[0]++;
+        } else {
+            die.setSpinPhase(1.0f);
+            ((Timer) e.getSource()).stop();
+        }
+    });
+    spinTimer.start();
+    }
+    private void spinPanel(Runnable onFlip) {
+        int intervalMs = 16;   // ~60fps
+        float halfDurMs = 320f; // ms per half (out + in)
+        boolean[] flipped = {false};
+        long[] startTime  = {System.currentTimeMillis()};
+        Timer t2 = new Timer(intervalMs, null);
+        t2.addActionListener(e -> {
+            float progress = Math.min(1.0f, (System.currentTimeMillis() - startTime[0]) / halfDurMs);
+            if (!flipped[0]) {
+                panelFlipper.accept(1.0f - easeIn(progress));
+                if (progress >= 1.0f) {
+                    flipped[0] = true;
+                    onFlip.run();
+                    startTime[0] = System.currentTimeMillis();
+                    panelFlipper.accept(0.0f);
+                }
+            } else {
+                panelFlipper.accept(easeOut(progress));
+                if (progress >= 1.0f) {
+                    panelFlipper.accept(1.0f);
+                    ((Timer) e.getSource()).stop();
+                }
+            }
+        });
+        t2.start();
+    }
+    private static float easeIn(float t)  { return t * t; }
+    private static float easeOut(float t) { return t * (2 - t); }
 
     private void updateHoldLabels() {
-        die5Label.setText((holding[0]) ? "KEEPING" : "ROLLING");
-        die3Label.setText((holding[1]) ? "KEEPING" : "ROLLING");
-        die1Label.setText((holding[2]) ? "KEEPING" : "ROLLING");
-        die4Label.setText((holding[3]) ? "KEEPING" : "ROLLING");
-        die2Label.setText((holding[4]) ? "KEEPING" : "ROLLING");
+        die1.setHeld(holding[0]);
+        die2.setHeld(holding[1]);
+        die3.setHeld(holding[2]);
+        die4.setHeld(holding[3]);
+        die5.setHeld(holding[4]);
     }
 
     private void checkAndPlayAITurn() {
@@ -582,7 +684,6 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 try {
                     YahtzeeAI brain = ai.getStrategy();
                     Thread.sleep(1000);
-                    // First roll — jButton1ActionPerformed calls t.removeRoll() internally
                     java.awt.EventQueue.invokeAndWait(this::performManualRoll);
                     while (t.getRolls() > 0) {
                         Thread.sleep(1500);
@@ -590,7 +691,6 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                         java.util.Set<Integer> toKeep = brain.chooseDiceToKeep(dice, scoreCard, rollsRemaining);
                         if (toKeep.size() == 5) break;
                         for (int j = 0; j < 5; j++) holding[j] = toKeep.contains(j);
-                        // performManualRoll → jButton1ActionPerformed → t.removeRoll() — no extra call needed
                         java.awt.EventQueue.invokeAndWait(() -> { updateHoldLabels(); performManualRoll(); });
                     }
                     Thread.sleep(1500);
@@ -604,8 +704,6 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             }).start();
         } else {
             jButton1.setEnabled(true);
-            die1.setEnabled(true); die2.setEnabled(true); die3.setEnabled(true);
-            die4.setEnabled(true); die5.setEnabled(true);
             turnActive = true;
         }
     }
@@ -630,12 +728,17 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         turnActive = false;
         rollCount  = 0;
         Arrays.fill(holding, false);
-        DiceComponent[] diceButtons = {die1, die2, die3, die4, die5};
-        javax.swing.JLabel[] labels = {die1Label, die2Label, die3Label, die4Label, die5Label};
-        for (int i = 0; i < diceButtons.length; i++) {
-            diceButtons[i].setValue(1);
-            labels[i].setText("");
-        }
+        firstRollDone = false;
+            die1.setEnabled(false); 
+            die2.setEnabled(false); 
+            die3.setEnabled(false);
+            die4.setEnabled(false); 
+            die5.setEnabled(false);
+        for (DiceComponent d : new DiceComponent[]{die1, die2, die3, die4, die5}) {
+            d.setHeld(false);
+            d.setValue(0);
+        }        
+
         if (t.completeGame()) {
             int score = scoreCard.getTotalScore();
             EndPage ep = new EndPage(score);
@@ -644,26 +747,31 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             turnActive = false;
         } else {
             pendingCategory = null;
-            t.nextPlayer();                       
-            jTable1.clearSelection(); jTable2.clearSelection();
-            jButton1.setEnabled(true);
-
-            scoreCard  = t.getScoreCard();
-            upperModel = new ScoreCardTableModel(scoreCard, UPPER);
-            lowerModel = new ScoreCardTableModel(scoreCard, LOWER);
-            jTable1.setModel(upperModel); jTable2.setModel(lowerModel);
-            jTable1.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
-            jTable2.getColumnModel().getColumn(1).setCellRenderer(new ScoreCellRenderer(scoreCard));
+            t.nextPlayer();
             t.resetRolls();
-
-            refreshSummary();
-            checkAndPlayAITurn();
+            spinPanel(() -> {
+                jTable1.clearSelection(); jTable2.clearSelection();
+                scoreCard  = t.getScoreCard();
+                upperModel = new ScoreCardTableModel(scoreCard, UPPER);
+                lowerModel = new ScoreCardTableModel(scoreCard, LOWER);
+                jTable1.setModel(upperModel); jTable2.setModel(lowerModel);
+                upperRenderer = new ScoreCellRenderer(scoreCard);
+                lowerRenderer = new ScoreCellRenderer(scoreCard);
+                jTable1.getColumnModel().getColumn(0).setCellRenderer(upperRenderer);
+                jTable1.getColumnModel().getColumn(1).setCellRenderer(upperRenderer);
+                jTable2.getColumnModel().getColumn(0).setCellRenderer(lowerRenderer);
+                jTable2.getColumnModel().getColumn(1).setCellRenderer(lowerRenderer);
+                refreshSummary();
+                jButton1.setEnabled(true);
+                checkAndPlayAITurn();
+            });
         }
     }
 
     private void performManualRoll() { jButton1ActionPerformed(null); }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+        //System.out.println("Roll clicked — turnActive=" + turnActive + " rolls=" + t.getRolls()); // temp debug
         if (!turnActive && t.getRolls() > 0) turnActive = true;
         if (!turnActive) return;
         DiceComponent[] j = {die1, die2, die3, die4, die5};
@@ -672,6 +780,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 dice[i].roll();
                 t.updateInterface(dice);
                 j[i].setValue(t.getDiceFromInterface()[i]);
+                spinDie(j[i]);
             }
             currentRoll = Arrays.copyOf(dice, dice.length);
             Map<Category, Integer> possibleScores = scoreCard.calculatePossibleScores(dice);
@@ -680,19 +789,21 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         }
         t.removeRoll();
         if (t.getRolls() == 0) jButton1.setEnabled(false);
+        if (!firstRollDone) {
+        firstRollDone = true;
+        die1.setEnabled(true);
+        die2.setEnabled(true); 
+        die3.setEnabled(true);
+        die4.setEnabled(true); 
+        die5.setEnabled(true);
     }
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        EndPage end = new EndPage(1);
-        end.setVisible(true);
-        this.dispose();
     }
-
-    private void die1ActionPerformed(java.awt.event.ActionEvent evt) { holding[0] = !holding[0]; die1Label.setText(holding[0] ? "KEEPING" : "ROLLING"); }
-    private void die2ActionPerformed(java.awt.event.ActionEvent evt) { holding[1] = !holding[1]; die2Label.setText(holding[1] ? "KEEPING" : "ROLLING"); }
-    private void die3ActionPerformed(java.awt.event.ActionEvent evt) { holding[2] = !holding[2]; die3Label.setText(holding[2] ? "KEEPING" : "ROLLING"); }
-    private void die4ActionPerformed(java.awt.event.ActionEvent evt) { holding[3] = !holding[3]; die3Label.setText(holding[3] ? "KEEPING" : "ROLLING"); }
-    private void die5ActionPerformed(java.awt.event.ActionEvent evt) { holding[4] = !holding[4]; die5Label.setText(holding[4] ? "KEEPING" : "ROLLING"); }
+    
+    private void die1ActionPerformed(java.awt.event.ActionEvent evt) { holding[0] = !holding[0]; die1.setHeld(holding[0]); }
+    private void die2ActionPerformed(java.awt.event.ActionEvent evt) { holding[1] = !holding[1]; die2.setHeld(holding[1]); }
+    private void die3ActionPerformed(java.awt.event.ActionEvent evt) { holding[2] = !holding[2]; die3.setHeld(holding[2]); }
+    private void die4ActionPerformed(java.awt.event.ActionEvent evt) { holding[3] = !holding[3]; die4.setHeld(holding[3]); }
+    private void die5ActionPerformed(java.awt.event.ActionEvent evt) { holding[4] = !holding[4]; die5.setHeld(holding[4]); }
 
     public static void main(String args[]) {
         try {
@@ -725,7 +836,8 @@ class BonusProgressBar extends JPanel {
         int W = getWidth(), H = getHeight();
         int arc = H;
 
-        g2.setColor(new Color(200, 150, 60, 120));
+        g2.setColor(new Color(180, 150, 60));
+        g2.fillRect(0, getHeight() - 2, getWidth(), 2);  // 2px thick line        
         g2.fillRoundRect(0, 0, W, H, arc, arc);
 
         int fillW = (int)((double) progress / BONUS_TARGET * W);
@@ -762,15 +874,23 @@ class GameFramePanel extends JPanel {
 
     public GameFramePanel() { setOpaque(false); }
 
-    private java.awt.geom.GeneralPath roundedRect(int W, int H, int offset, int radius) {
-        int x = offset, y = offset, x2 = W - offset, y2 = H - offset;
-        int r = Math.min(radius, Math.min((x2 - x) / 2, (y2 - y) / 2));
+    /**
+     * Half-frame path: rounded bottom-left corner, bottom runs off right edge,
+     * left edge runs off top — no top-right corner or closing sides.
+     */
+    private java.awt.geom.GeneralPath halfFramePath(int W, int H, int offset, int radius) {
+        int x  = offset;
+        int y2 = H - offset;
+        int r  = radius;
         java.awt.geom.GeneralPath p = new java.awt.geom.GeneralPath();
-        p.moveTo(x + r, y);   p.lineTo(x2 - r, y);
-        p.quadTo(x2, y, x2, y + r);   p.lineTo(x2, y2 - r);
-        p.quadTo(x2, y2, x2 - r, y2); p.lineTo(x + r, y2);
-        p.quadTo(x, y2, x, y2 - r);   p.lineTo(x, y + r);
-        p.quadTo(x, y, x + r, y);     p.closePath();
+        // Start off the right edge along the bottom
+        p.moveTo(W + 50, y2);
+        // Run left to corner start
+        p.lineTo(x + r, y2);
+        // Rounded bottom-left corner
+        p.quadTo(x, y2, x, y2 - r);
+        // Run up the left edge and exit off the top
+        p.lineTo(x, -50);
         return p;
     }
 
@@ -779,22 +899,33 @@ class GameFramePanel extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         int w = getWidth(), h = getHeight();
-        g2.setColor(Color.BLACK); g2.fillRoundRect(0, 0, w, h, 15, 15);
+
+        // Fill entire background black so the corner area behind the curves is black
+        g2.setColor(Color.BLACK);
+        g2.fillRect(0, 0, w, h);
+
+        // Fill the interior (top-right area) with the yellow colour.
+        // The interior starts after the outermost stripe clears the corner.
         int baseOffset = 30, baseRadius = 90;
         int[] strokeW = {46, 36, 26};
-        Color[] colors = {YELLOW, LIGHT_ORANGE, DARK_ORANGE};
-        int gap = 2;
-        int innerOff = baseOffset + strokeW[0] / 2 + 6 / 2 + gap * 2 + 5;
+        int innerOff = baseOffset + strokeW[0] / 2 + 8;
+        // Clip interior fill: everything to the right of the left arm and above the bottom arm
         g2.setColor(INTERIOR);
-        g2.fill(roundedRect(w, h, innerOff, Math.max(8, baseRadius - gap * 2)));
+        g2.fillRect(innerOff, 0, w - innerOff, h - innerOff);
+
+        Color[] colors = {YELLOW, LIGHT_ORANGE, DARK_ORANGE};
         int stripeSpacing = 14;
+
         for (int i = 0; i < 3; i++) {
             int off = baseOffset + i * stripeSpacing;
-            java.awt.geom.GeneralPath path = roundedRect(w, h, off, baseRadius);
+            int rad = Math.max(20, baseRadius - i * 10);
+            java.awt.geom.GeneralPath path = halfFramePath(w, h, off, rad);
             g2.setStroke(new BasicStroke(strokeW[i] + 6, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
-            g2.setColor(Color.BLACK); g2.draw(path);
+            g2.setColor(Color.BLACK);
+            g2.draw(path);
             g2.setStroke(new BasicStroke(strokeW[i], BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
-            g2.setColor(colors[i]); g2.draw(path);
+            g2.setColor(colors[i]);
+            g2.draw(path);
         }
         g2.dispose();
     }
