@@ -544,6 +544,8 @@ private void layoutComponents() {
 
         YahtzeeDesign y = new YahtzeeDesign(tm);
         y.setVisible(true);
+        
+        this.setVisible(false);
     }                                           
 
     private void AI_PlayerButtonActionPerformed(java.awt.event.ActionEvent evt) {                                                
