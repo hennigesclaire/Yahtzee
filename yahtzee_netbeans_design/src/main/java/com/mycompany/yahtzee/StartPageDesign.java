@@ -94,11 +94,9 @@ public StartPageDesign() {
 
     ArchPanel arch = new ArchPanel();
     arch.setOpaque(false);
-    SwingUtilities.invokeLater(() -> {
-        arch.setBounds(0, 0, jLayeredPane1.getWidth(), jLayeredPane1.getHeight());
-        jLayeredPane1.add(arch, Integer.valueOf(-1));
-        jLayeredPane1.repaint();
-    });
+    arch.setBounds(0, 0, jLayeredPane1.getWidth(), jLayeredPane1.getHeight());
+    jLayeredPane1.add(arch, Integer.valueOf(-1));
+    jLayeredPane1.repaint();
 
     jLayeredPane1.addComponentListener(new ComponentAdapter() {
         @Override
@@ -135,7 +133,7 @@ public StartPageDesign() {
     playerCount = 0;
     StartButton.setEnabled(false);
 
-    SwingUtilities.invokeLater(() -> layoutComponents());
+    layoutComponents();
 }
 
 private Font uiFont(float size) {
@@ -230,6 +228,24 @@ private void layoutComponents() {
     StartButton.setEnabled(playerCount > 0);
     }
 
+    private void resetRowSizes() {
+        int fieldHeight = (int)(jLayeredPane1.getHeight() * 0.045);
+        int fieldWidth  = (int)(jPanel3.getWidth() * 0.25);
+        Dimension fieldSize = new Dimension(fieldWidth, fieldHeight);
+        for (Component c : jPanel3.getComponents()) {
+            if (!(c instanceof JPanel)) continue;
+            JPanel row = (JPanel) c;
+            for (Component inner : row.getComponents()) {
+                if (inner instanceof JTextField) {
+                    inner.setPreferredSize(fieldSize);
+                    inner.setMinimumSize(fieldSize);
+                    inner.setMaximumSize(fieldSize);
+                    inner.revalidate();
+                }
+            }
+        }
+    }
+
     private void removeRowAndSpacer(JPanel row) {
         int index = -1;
 
@@ -291,6 +307,7 @@ private void layoutComponents() {
             removeRowAndSpacer(row);
             playerCount = getRowCount();
             updateButtonState();
+            resetRowSizes();
             jPanel3.revalidate();
             jPanel3.repaint();
         });
@@ -325,6 +342,7 @@ private void layoutComponents() {
             removeRowAndSpacer(row);
             playerCount = getRowCount();
             updateButtonState();
+            resetRowSizes();
             jPanel3.revalidate();
             jPanel3.repaint();
         });
@@ -862,9 +880,6 @@ class ArchPanel extends JPanel {
         int[] strokes    = { outerStroke, middleStroke, innerStroke };
         Color[] colors   = { yellow, lightOrange, darkOrange };
 
-        g2.setColor(Color.BLACK);
-        g2.fillRect(0, 0, w, h);
-
         {
             int ax0 = sideMargin;
             int ay0 = arcOffsetY;
@@ -879,7 +894,13 @@ class ArchPanel extends JPanel {
             interior.lineTo(ax0 + aw0, h);
             interior.closePath();
 
-            g2.setColor(new Color(250, 235, 137)); 
+            // Paint black only OUTSIDE the arch, so no black flash on startup
+            java.awt.geom.Area blackArea = new java.awt.geom.Area(new java.awt.Rectangle(0, 0, w, h));
+            blackArea.subtract(new java.awt.geom.Area(interior));
+            g2.setColor(Color.BLACK);
+            g2.fill(blackArea);
+
+            g2.setColor(new Color(250, 235, 137));
             g2.fill(interior);
         }
 
