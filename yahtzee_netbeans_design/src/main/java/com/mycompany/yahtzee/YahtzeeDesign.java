@@ -37,6 +37,9 @@ import java.awt.RenderingHints;
 import java.awt.BasicStroke;
 import java.awt.GradientPaint;
 import java.awt.FontMetrics;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 
 
 public class YahtzeeDesign extends javax.swing.JFrame {
@@ -828,6 +831,17 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             firstRollDone = true;
             die1.setEnabled(true); die2.setEnabled(true); die3.setEnabled(true);
             die4.setEnabled(true); die5.setEnabled(true);
+        }
+        try
+        {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/DiceRoll.wav"));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInput);
+            clip.start();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
         }
     }
 
