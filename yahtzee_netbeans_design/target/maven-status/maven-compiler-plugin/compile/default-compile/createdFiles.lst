@@ -44,6 +44,7 @@ com\mycompany\yahtzee\Player.class
 com\mycompany\yahtzee\YahtzeeDesign$5.class
 com\mycompany\yahtzee\StartPageDesign$5.class
 com\mycompany\yahtzee\AIPlayer.class
+com\mycompany\yahtzee\EndPage$2.class
 com\mycompany\yahtzee\ScoreCellRenderer.class
 com\mycompany\yahtzee\DiceComponent.class
 com\mycompany\yahtzee\StartPageDesign$2.class

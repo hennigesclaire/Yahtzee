@@ -7,7 +7,6 @@ package com.mycompany.yahtzee;
  *
  * @author henni
  */
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -79,7 +78,7 @@ public StartPageDesign() {
     int dynamicH = Math.max(minPanel3H, jPanel3.getComponentCount() * rowHeight);
 
     int panelW = (int)(w * 0.60);
-    int panelH = (int)(h * 0.45);
+    int panelH = (int)(h * 0.55);
 
     int panelX = (w - panelW) / 2;
 
@@ -158,31 +157,31 @@ private void layoutComponents() {
 
     int panel2W = (int)(w * 0.40);
     int panel2H = (int)(h * 0.22);
-    jPanel2.setBounds((w - panel2W) / 2, (int)(h * 0.72) + 40 , panel2W, panel2H);
-    int btnW    = (int)(panel2W * 0.42);
-    int btnH    = (int)(h * 0.06);
-    int gap     = panel2W - btnW * 2;
-    int startW  = (int)(panel2W * 0.90);
-    int startH  = (int)(h * 0.07);
+    int panel2Y = (int)(h * 0.72);
+    jPanel2.setBounds((w - panel2W) / 2, panel2Y, panel2W, panel2H);
 
-    int rowHeight = 45; 
-    int minPanel3H = (int)(h * 0.10);
-    int dynamicH = Math.max(minPanel3H, jPanel3.getComponentCount() * rowHeight);
+    int btnW   = (int)(panel2W * 0.42);
+    int btnH   = (int)(h * 0.06);
+    int gap    = panel2W - btnW * 2;
+    int btnTop = (int)(panel2H * 0.3);
 
-    PlayerButton.setBounds(0, btnH/5, btnW, btnH);
-    AI_PlayerButton.setBounds(btnW + gap, btnH/5, btnW, btnH);
-    StartButton.setBounds((panel2W - startW) / 2, (int)(btnH*2.5) , startW, startH);
+    int startW = (int)(panel2W * 0.90);
+    int startH = (int)(h * 0.07);
+    int startY = (int)(panel2H * 0.75);
 
-    int panel3Top = (int)(h * 0.28);
-    int panel3Height = (int)(h * 0.54);  
+    PlayerButton.setBounds(0, btnTop, btnW, btnH);
+    AI_PlayerButton.setBounds(btnW + gap, btnTop, btnW, btnH);
+    StartButton.setBounds((panel2W - startW) / 2, startY, startW, startH);
 
-    int panel3W = (int)(w * 0.50);
+    int panel3Top    = (int)(h * 0.28);
+    int panel3Height = (int)(h * 0.50);
+    int panel3W      = (int)(w * 0.50);
     jPanel3.setBounds((w - panel3W) / 2, panel3Top, panel3W, panel3Height);
 
-    float btnFont = Math.max(14f, h * 0.03f);
+    float btnFont = Math.max(14f, h * 0.030f);
     PlayerButton.setFont(uiFont(btnFont));
     AI_PlayerButton.setFont(uiFont(btnFont));
-    StartButton.setFont(uiFont(btnFont*2));
+    StartButton.setFont(uiFont(btnFont * 1.8f));
 
     jLayeredPane1.revalidate();
     jLayeredPane1.repaint();
@@ -267,7 +266,8 @@ private void layoutComponents() {
 
    private JPanel createHostRow() {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER,10,10));
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));        
+        int rowH = Math.max(40, (int)(jLayeredPane1.getHeight() * 0.07));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowH));        
         row.setOpaque(false);
 
         JTextField nameField = new JTextField("Player 1", 12);
@@ -293,14 +293,17 @@ private void layoutComponents() {
     private JPanel createHumanPlayerRow(int number) {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
         row.setOpaque(false);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
+        int rowH = Math.max(40, (int)(jLayeredPane1.getHeight() * 0.07));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowH));
         JTextField nameField = new RoundedTextField("Player " + number, 12);
         int fieldHeight = (int)(jLayeredPane1.getHeight() * 0.045);
         nameField.setPreferredSize(new Dimension((int)(jPanel3.getWidth() * 0.25), fieldHeight));
         ImageIcon icon = new ImageIcon(getClass().getResource("/img/trash_icon.png"));
-        Image scaled = icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+        int iconSize = Math.max(16, (int)(jLayeredPane1.getHeight() * 0.025));
+        Image scaled = icon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
         JButton deleteButton1 = new JButton(new ImageIcon(scaled));
-        deleteButton1.setPreferredSize(new Dimension(28, 28)); 
+        int btnSize = Math.max(24, (int)(jLayeredPane1.getHeight() * 0.033));
+        deleteButton1.setPreferredSize(new Dimension(btnSize, btnSize)); 
         deleteButton1.setBorderPainted(false); 
         deleteButton1.setContentAreaFilled(false); 
         deleteButton1.addActionListener(e -> {
@@ -324,17 +327,19 @@ private void layoutComponents() {
     private JPanel createAIPlayerRow(int number) {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
         row.setOpaque(false);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));        
+        int rowH = Math.max(40, (int)(jLayeredPane1.getHeight() * 0.07));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowH));        
         row.putClientProperty("type", "AI");
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
         row.setOpaque(false);
         JTextField nameField = new RoundedTextField("AI Player " + number, 12);
         int fieldHeight = (int)(jLayeredPane1.getHeight() * 0.045);
         nameField.setPreferredSize(new Dimension((int)(jPanel3.getWidth() * 0.25), fieldHeight));
         ImageIcon icon = new ImageIcon(getClass().getResource("/img/trash_icon.png"));
-        Image scaled = icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-        JButton deleteButton = new JButton(new ImageIcon(scaled));        
-        deleteButton.setPreferredSize(new Dimension(28, 28)); 
+        int iconSize = Math.max(16, (int)(jLayeredPane1.getHeight() * 0.025));
+        Image scaled = icon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
+        JButton deleteButton = new JButton(new ImageIcon(scaled));
+        int btnSize = Math.max(24, (int)(jLayeredPane1.getHeight() * 0.033));
+        deleteButton.setPreferredSize(new Dimension(btnSize, btnSize)); 
         deleteButton.setBorderPainted(false); 
         deleteButton.setContentAreaFilled(false); 
         deleteButton.setOpaque(false);
@@ -349,7 +354,7 @@ private void layoutComponents() {
 
         JLabel easyLabel = new JLabel("Easy");
         easyLabel.setForeground(Color.BLACK);
-        easyLabel.setFont(uiFont(18f));
+        easyLabel.setFont(uiFont(Math.max(14f, jLayeredPane1.getHeight() * 0.022f)));
         JSlider difficultySlider = new JSlider(0, 1, 0);
         difficultySlider.setUI(new ThemedSliderUI(difficultySlider));
         difficultySlider.setOpaque(false);
@@ -357,9 +362,10 @@ private void layoutComponents() {
 
         JLabel hardLabel = new JLabel("Hard");
         hardLabel.setForeground(Color.BLACK);
-        hardLabel.setFont(uiFont(18f));
+        hardLabel.setFont(uiFont(Math.max(14f, jLayeredPane1.getHeight() * 0.022f)));
+        int spacerSz = Math.max(40, (int)(jLayeredPane1.getWidth() * 0.045));
         JLabel spacer = new JLabel();
-        spacer.setPreferredSize(new Dimension(68, 28)); 
+        spacer.setPreferredSize(new Dimension(spacerSz, Math.max(20, (int)(jLayeredPane1.getHeight() * 0.030)))); 
 
         row.add(deleteButton);
         row.add(nameField);
@@ -415,7 +421,7 @@ private void layoutComponents() {
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 204));
 
-        Title.setFont(new java.awt.Font("Bauhaus 93", 1, 48)); // NOI18N
+        Title.setFont(new java.awt.Font("Bauhaus 93", 1, 48));
         Title.setForeground(new java.awt.Color(204, 0, 51));
         Title.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
@@ -423,7 +429,7 @@ private void layoutComponents() {
         jPanel2.setBorder(javax.swing.BorderFactory.createCompoundBorder());
 
         PlayerButton.setBackground(new java.awt.Color(255, 255, 204));
-        PlayerButton.setFont(new java.awt.Font("Berlin Sans FB Demi", 1, 18)); // NOI18N
+        PlayerButton.setFont(new java.awt.Font("Berlin Sans FB Demi", 1, 18));
         PlayerButton.setText("Add Player");
         PlayerButton.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         PlayerButton.addActionListener(new java.awt.event.ActionListener() {
@@ -433,7 +439,7 @@ private void layoutComponents() {
         });
 
         AI_PlayerButton.setBackground(new java.awt.Color(255, 255, 204));
-        AI_PlayerButton.setFont(new java.awt.Font("Berlin Sans FB Demi", 1, 18)); // NOI18N
+        AI_PlayerButton.setFont(new java.awt.Font("Berlin Sans FB Demi", 1, 18));
         AI_PlayerButton.setText("Add AI Player");
         AI_PlayerButton.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         AI_PlayerButton.addActionListener(new java.awt.event.ActionListener() {
@@ -443,7 +449,7 @@ private void layoutComponents() {
         });
 
         StartButton.setBackground(new java.awt.Color(255, 255, 204));
-        StartButton.setFont(new java.awt.Font("Berlin Sans FB Demi", 1, 24)); // NOI18N
+        StartButton.setFont(new java.awt.Font("Berlin Sans FB Demi", 1, 24));
         StartButton.setText("Start");
         StartButton.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         StartButton.addActionListener(new java.awt.event.ActionListener() {
@@ -603,7 +609,6 @@ private void layoutComponents() {
     // End of variables declaration                   
 }
 
-// ─────────────────────────────────────────────
 class OutlinedLabel extends JLabel {
 
     public OutlinedLabel(String text) {
@@ -700,11 +705,9 @@ class GlassPanel extends JPanel {
 
         int arc = 30;
 
-        // flat translucent fill — no gradient
         g2.setColor(new Color(255, 255, 255, 40));
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
 
-        // warm amber outline
         g2.setColor(new Color(200, 120, 30, 220));
         g2.setStroke(new BasicStroke(2));
         g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, arc, arc);
@@ -867,15 +870,15 @@ class ArchPanel extends JPanel {
         int w = getWidth();
         int h = getHeight();
 
-        int arcHeight  = 800;
-        int sideMargin = 20;
+        int arcHeight  = (int)(h * 0.83);
+        int sideMargin = (int)(w * 0.013);
         int shrink     = arcHeight / 30;
-        int arcOffsetY = 25;
-        int outlineExtra = 4;
+        int arcOffsetY = (int)(h * 0.026);
+        int outlineExtra = (int)(Math.max(2, h * 0.004));
 
-        int outerStroke  = 42;
-        int middleStroke = 36;
-        int innerStroke  = 30;
+        int outerStroke  = (int)(h * 0.043);
+        int middleStroke = (int)(h * 0.037);
+        int innerStroke  = (int)(h * 0.031);
 
         int[] strokes    = { outerStroke, middleStroke, innerStroke };
         Color[] colors   = { yellow, lightOrange, darkOrange };
@@ -894,7 +897,6 @@ class ArchPanel extends JPanel {
             interior.lineTo(ax0 + aw0, h);
             interior.closePath();
 
-            // Paint black only OUTSIDE the arch, so no black flash on startup
             java.awt.geom.Area blackArea = new java.awt.geom.Area(new java.awt.Rectangle(0, 0, w, h));
             blackArea.subtract(new java.awt.geom.Area(interior));
             g2.setColor(Color.BLACK);

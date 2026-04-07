@@ -6,8 +6,6 @@
  *
  * @author henni
  */
-
-
 package com.mycompany.yahtzee;
 
 import javax.swing.*;
@@ -85,6 +83,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
 
     private javax.swing.JLayeredPane jLayeredPane1;
     private GlassPanel leaderboardPanel;
+    private javax.swing.JLabel yahtzeeTitle;
     private javax.swing.JLabel leaderboardTitle;
     private javax.swing.JPanel leaderboardList;
 
@@ -150,6 +149,12 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 frameArch.repaint();
             }
         });
+
+        yahtzeeTitle = new OutlinedLabel("Yahtzee");
+        yahtzeeTitle.setFont(new Font("Bauhaus 93", Font.BOLD, 60));
+        yahtzeeTitle.setForeground(new Color(180, 20, 20));
+        yahtzeeTitle.setHorizontalAlignment(SwingConstants.CENTER);
+        jLayeredPane1.add(yahtzeeTitle);
 
         leaderboardPanel = new GlassPanel();
         leaderboardPanel.setLayout(null);
@@ -284,12 +289,20 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         int combX = iL + (int)(iW * 0.22) + (int)(iW * 0.09);
         int combW = iR - combX;
 
-        leaderboardPanel.setBounds(lbX, iT, lbW, contentH);
+        int yahtzeeTitleH = Math.max(50, (int)(iH * 0.13));
+        float yahtzeeTitleSize = Math.max(28f, yahtzeeTitleH * 0.72f);
+        yahtzeeTitle.setFont(new Font("Bauhaus 93", Font.BOLD, (int)yahtzeeTitleSize));
+        yahtzeeTitle.setBounds(lbX, iT, lbW, yahtzeeTitleH);
+
         int lbPad = 10;
-        int titleH = Math.max(28, (int)(contentH * 0.09));
+        int lbY = iT + yahtzeeTitleH + (int)(iH * 0.18);
+        int titleH = Math.max(24, (int)(contentH * 0.08));
+        int rowSlotH = Math.max(28, (int)(contentH * 0.075));
+        int lbH = titleH + 6 * rowSlotH + lbPad * 3;
+        leaderboardPanel.setBounds(lbX, lbY, lbW, lbH);
         leaderboardTitle.setFont(uiFont(Math.max(13f, titleH * 0.62f)));
         leaderboardTitle.setBounds(lbPad, lbPad, lbW - lbPad * 2, titleH);
-        leaderboardList.setBounds(lbPad, lbPad + titleH + 4, lbW - lbPad * 2, contentH - titleH - lbPad * 3);
+        leaderboardList.setBounds(lbPad, lbPad + titleH + 4, lbW - lbPad * 2, 6 * rowSlotH);
         refreshLeaderboard();
 
         jPanel2.setBounds(combX, iT, combW, contentH);
@@ -513,6 +526,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             die4.setEnabled(false); die5.setEnabled(false);
             new Thread(() -> {
                 try {
+                    
                     YahtzeeAI brain = ai.getStrategy();
                     Thread.sleep(1000);
                     java.awt.EventQueue.invokeAndWait(this::performManualRoll);
@@ -570,7 +584,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 animateLeaderboard(() -> {
 
                     if (t.completeGame()) {
-                        new EndPage(scoreCard.getTotalScore()).setVisible(true);
+                        new EndPage(t).setVisible(true);
                     } else {
                         pendingCategory = null;
                         t.nextPlayer(); t.resetRolls();
