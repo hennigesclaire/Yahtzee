@@ -43,6 +43,9 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
 import com.mycompany.yahtzee.AIPlayer;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 
 
 
@@ -313,6 +316,17 @@ private void layoutComponents() {
             resetRowSizes();
             jPanel3.revalidate();
             jPanel3.repaint();
+            try
+            {
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start();
+            }
+            catch (Exception ex)
+            {
+                System.out.println(ex);
+            }
         });
         JLabel spacer = new JLabel();
         int spacerW = (int)(jPanel3.getWidth() * 0.5);
@@ -350,6 +364,17 @@ private void layoutComponents() {
             resetRowSizes();
             jPanel3.revalidate();
             jPanel3.repaint();
+            try
+            {
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start();
+            }
+            catch (Exception ex)
+            {
+                System.out.println(ex);
+            }
         });
 
         JLabel easyLabel = new JLabel("Easy");
@@ -435,6 +460,17 @@ private void layoutComponents() {
         PlayerButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 PlayerButtonActionPerformed(evt);
+                try
+                {
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioInput);
+                    clip.start();
+                }
+                catch (Exception e)
+                {
+                    System.out.println(e);
+                }
             }
         });
 
@@ -565,7 +601,17 @@ private void layoutComponents() {
                 idCounter++;
             }
         }
-
+        try
+        {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInput);
+            clip.start();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
         YahtzeeDesign y = new YahtzeeDesign(tm);
         y.setVisible(true);
         
@@ -582,6 +628,17 @@ private void layoutComponents() {
         playerCount = getRowCount();
         updateButtonState();
         SwingUtilities.invokeLater(() -> layoutComponents());
+        try
+        {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInput);
+            clip.start();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
     }                                               
 
     private void PlayerButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
@@ -594,6 +651,17 @@ private void layoutComponents() {
         playerCount = getRowCount();
         updateButtonState();
         SwingUtilities.invokeLater(() -> layoutComponents());
+        try
+        {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInput);
+            clip.start();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
     }                                            
 
     // Variables declaration - do not modify   PLEASE               

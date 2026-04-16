@@ -857,13 +857,99 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         {
             System.out.println(e);
         }
+        try
+        {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInput);
+            clip.start();
+        }
+        catch (Exception ex)
+        {
+            System.out.println(ex);
+        }
     }
 
-    private void die1ActionPerformed(java.awt.event.ActionEvent evt) { holding[0] = !holding[0]; die1.setHeld(holding[0]); }
-    private void die2ActionPerformed(java.awt.event.ActionEvent evt) { holding[1] = !holding[1]; die2.setHeld(holding[1]); }
-    private void die3ActionPerformed(java.awt.event.ActionEvent evt) { holding[2] = !holding[2]; die3.setHeld(holding[2]); }
-    private void die4ActionPerformed(java.awt.event.ActionEvent evt) { holding[3] = !holding[3]; die4.setHeld(holding[3]); }
-    private void die5ActionPerformed(java.awt.event.ActionEvent evt) { holding[4] = !holding[4]; die5.setHeld(holding[4]); }
+    private void die1ActionPerformed(java.awt.event.ActionEvent evt)
+    { 
+        holding[0] = !holding[0]; 
+        die1.setHeld(holding[0]); 
+        try
+        {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInput);
+            clip.start();
+        }
+        catch (Exception ex)
+        {
+            System.out.println(ex);
+        }
+    }
+    private void die2ActionPerformed(java.awt.event.ActionEvent evt)
+    { 
+        holding[1] = !holding[1]; 
+        die2.setHeld(holding[1]); 
+        try
+        {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInput);
+            clip.start();
+        }
+        catch (Exception ex)
+        {
+            System.out.println(ex);
+        }
+    }
+    private void die3ActionPerformed(java.awt.event.ActionEvent evt)
+    { 
+        holding[2] = !holding[2]; 
+        die3.setHeld(holding[2]); 
+        try
+        {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInput);
+            clip.start();
+        }
+        catch (Exception ex)
+        {
+            System.out.println(ex);
+        }
+    }
+    private void die4ActionPerformed(java.awt.event.ActionEvent evt)
+    { 
+        holding[3] = !holding[3]; 
+        die4.setHeld(holding[3]); 
+        try
+        {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInput);
+            clip.start();
+        }
+        catch (Exception ex)
+        {
+            System.out.println(ex);
+        }
+    }
+    private void die5ActionPerformed(java.awt.event.ActionEvent evt)
+    { 
+        holding[4] = !holding[4]; 
+        die5.setHeld(holding[4]); 
+        try
+        {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInput);
+            clip.start();
+        }
+        catch (Exception ex)
+        {
+            System.out.println(ex);
+        }
+    }
 
     public static void main(String args[]) {
         try {
