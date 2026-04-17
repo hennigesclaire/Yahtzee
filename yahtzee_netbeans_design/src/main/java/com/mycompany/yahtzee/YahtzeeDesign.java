@@ -564,6 +564,17 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                     int[] currentVals = t.getDiceFromInterface();
                     Category choice = brain.chooseCategory(currentVals, scoreCard);
                     java.awt.EventQueue.invokeLater(() -> finalizeCategorySelection(choice));
+                    try
+                    {
+                        AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+                        Clip clip = AudioSystem.getClip();
+                        clip.open(audioInput);
+                        clip.start();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.out.println(ex);
+                    }
                 } catch (Exception ex) { ex.printStackTrace(); }
             }).start();
         } else {
