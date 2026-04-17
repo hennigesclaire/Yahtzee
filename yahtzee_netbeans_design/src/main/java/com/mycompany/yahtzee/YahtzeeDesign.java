@@ -452,6 +452,17 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 int row = jTable1.rowAtPoint(e.getPoint()), col = jTable1.columnAtPoint(e.getPoint());
                 if (row >= 0 && col == 1 && turnActive && firstRollDone)
                     finalizeCategorySelection(upperModel.getCategoryAt(row));
+                try
+                {
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioInput);
+                    clip.start();
+                }
+                catch (Exception ex)
+                {
+                    System.out.println(ex);
+                }
             }
         });
         jTable2.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
@@ -467,6 +478,17 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 int row = jTable2.rowAtPoint(e.getPoint()), col = jTable2.columnAtPoint(e.getPoint());
                 if (row >= 0 && col == 1 && turnActive && firstRollDone)
                     finalizeCategorySelection(lowerModel.getCategoryAt(row));
+                try
+                {
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioInput);
+                    clip.start();
+                }
+                catch (Exception ex)
+                {
+                    System.out.println(ex);
+                }
             }
         });
     }
