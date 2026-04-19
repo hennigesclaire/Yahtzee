@@ -275,7 +275,10 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         int W = jLayeredPane1.getWidth(), H = jLayeredPane1.getHeight();
         if (W == 0 || H == 0) return;
 
-        int frameArm = 81, frameBuffer = 40, smallBorder = 28;
+        int frameArm    = Math.max(50, (int)(W * 0.065));
+        int frameBuffer = Math.max(20, (int)(W * 0.028));
+        int smallBorder = Math.max(16, (int)(H * 0.030));
+
         int iL = frameArm + frameBuffer, iT = smallBorder;
         int iR = W - smallBorder, iW = iR - iL, iH = (H - smallBorder) - iT;
 
@@ -316,6 +319,11 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             int tableGap = Math.max(4, (int)(bodyH * 0.015));
             int rowH = Math.max(22, (int)(bodyH * 0.035));
             jTable1.setRowHeight(rowH); jTable2.setRowHeight(rowH);
+
+            Font tableFont = new Font("Bauhaus 93", Font.BOLD, Math.max(10, rowH - 6));
+            jTable1.setFont(tableFont);
+            jTable2.setFont(tableFont);
+
             int upperH = UPPER.length * rowH, lowerH = LOWER.length * rowH;
             int cy = contentTop;
             UpperSectionLabel.setFont(uiFont(Math.max(13f, labelH)));
@@ -327,27 +335,37 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             jScrollPane2.setBounds(pad, cy, scW - pad * 2, lowerH);
             int summaryRowH = Math.max(30, (int)(bodyH * 0.11));
             int barH = Math.max(18, (int)(summaryRowH * 0.45));
-            int valX = combW - pad - 70, lblW2 = valX - sumX - 4;
+
+            int valW = Math.max(50, (int)(combW * 0.13));
+            int valX = combW - pad - valW;
+            int lblW2 = valX - sumX - 4;
+
             int upperRowY = contentTop + labelH + 2;
             summaryUpperLabel.setFont(uiFont(Math.max(14f, summaryRowH * 0.60f)));
             summaryUpperLabel.setBounds(sumX, upperRowY, lblW2, summaryRowH);
             summaryUpperVal.setFont(uiFont(Math.max(14f, summaryRowH * 0.60f)));
-            summaryUpperVal.setBounds(valX, upperRowY, 70, summaryRowH);
+            summaryUpperVal.setBounds(valX, upperRowY, valW, summaryRowH);
+
             int bonusRowY = (int)(upperTableEndY + contentTop + labelH * 8.5 + 2 + tableGap) / 2 - summaryRowH / 2;
             summaryBonusLabel.setFont(uiFont(Math.max(13f, summaryRowH * 0.55f)));
-            summaryBonusLabel.setBounds(sumX, bonusRowY, 80, summaryRowH);
-            bonusBar.setBounds(sumX + 85, bonusRowY + (summaryRowH - barH) / 2, combW - (sumX + 85) - pad - 70, barH);
+
+            int bonusLblW = Math.max(50, (int)(combW * 0.15));
+            summaryBonusLabel.setBounds(sumX, bonusRowY, bonusLblW, summaryRowH);
+            bonusBar.setBounds(sumX + bonusLblW + 10, bonusRowY + (summaryRowH - barH) / 2,
+                valX - (sumX + bonusLblW + 5) - 4, barH);
+
             summaryBonusVal.setFont(uiFont(Math.max(13f, summaryRowH * 0.55f)));
-            summaryBonusVal.setBounds(valX, bonusRowY, 70, summaryRowH);
+            summaryBonusVal.setBounds(valX, bonusRowY, valW, summaryRowH);  
+
             int totalRowY = contentH - pad - summaryRowH, lowerRowY = totalRowY - summaryRowH - 8;
             summaryLowerLabel.setFont(uiFont(Math.max(14f, summaryRowH * 0.60f)));
             summaryLowerLabel.setBounds(sumX, lowerRowY, lblW2, summaryRowH);
             summaryLowerVal.setFont(uiFont(Math.max(14f, summaryRowH * 0.60f)));
-            summaryLowerVal.setBounds(valX, lowerRowY, 70, summaryRowH);
+            summaryLowerVal.setBounds(valX, lowerRowY, valW, summaryRowH);  
             summaryTotalLabel.setFont(uiFont(Math.max(16f, summaryRowH * 0.70f)));
             summaryTotalLabel.setBounds(sumX, totalRowY, lblW2, summaryRowH);
             summaryTotalVal.setFont(uiFont(Math.max(16f, summaryRowH * 0.70f)));
-            summaryTotalVal.setBounds(valX, totalRowY, 70, summaryRowH);
+            summaryTotalVal.setBounds(valX, totalRowY, valW, summaryRowH);  
         }
 
         jPanel1.setBounds(iL, diceStripY, iR - iL, diceStripH);
@@ -617,7 +635,9 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 animateLeaderboard(() -> {
 
                     if (t.completeGame()) {
-                        new EndPage(t).setVisible(true);
+                        EndPage ep = new EndPage(t);
+                        ep.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                        ep.setVisible(true);
                         dispose();
                     } else {
                         pendingCategory = null;
@@ -986,6 +1006,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     }
 
     public static void main(String args[]) {
+        System.setProperty("sun.java2d.uiScale.enabled", "true");
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
                 if ("Nimbus".equals(info.getName())) { javax.swing.UIManager.setLookAndFeel(info.getClassName()); break; }

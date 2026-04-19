@@ -625,7 +625,7 @@ private void layoutComponents() {
         }
         YahtzeeDesign y = new YahtzeeDesign(tm);
         y.setVisible(true);
-        
+        y.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.setVisible(false);
     }                                           
 
