@@ -57,11 +57,11 @@ import javax.sound.sampled.Clip;
 
 public class StartPageDesign extends javax.swing.JFrame {
     private TurnManager tm;  
-    private JPanel[] players = new JPanel[6];
+    private JPanel[] slots = new JPanel[6];
     private static final java.util.logging.Logger logger =
         java.util.logging.Logger.getLogger(StartPageDesign.class.getName());
     private int playerCount = 1;
-
+    private final int NAME_LEFT_MARGIN = 60;
 
 public StartPageDesign() {   
     UIManager.put("Slider.foreground", new Color(230, 120, 40));
@@ -69,16 +69,13 @@ public StartPageDesign() {
     this.tm = new TurnManager();                         
     setExtendedState(JFrame.MAXIMIZED_BOTH);
     initComponents();
+    initSlots();
     jPanel2.setLayout(null);
     jPanel1.setLayout(null);
     jPanel3.setLayout(new BoxLayout(jPanel3, BoxLayout.Y_AXIS));
     jPanel3.setAlignmentX(Component.CENTER_ALIGNMENT);
     int w = jLayeredPane1.getWidth();
     int h = jLayeredPane1.getHeight();
-
-    int rowHeight = 45;
-    int minPanel3H = (int)(h * 0.10);
-    int dynamicH = Math.max(minPanel3H, jPanel3.getComponentCount() * rowHeight);
 
     int panelW = (int)(w * 0.60);
     int panelH = (int)(h * 0.55);
@@ -155,33 +152,54 @@ private void layoutComponents() {
     jPanel1.setBounds(0, 0, w, h);
 
     Title.setBounds(0, (int)(h * 0.12), w, (int)(h * 0.16));
-    float titleSize = Math.max(36f, h * 0.13f);
+    float titleSize = h * 0.13f;
     Title.setFont(new java.awt.Font("Bauhaus 93", java.awt.Font.BOLD, (int)titleSize));
 
     int panel2W = (int)(w * 0.40);
-    int panel2H = (int)(h * 0.22);
-    int panel2Y = (int)(h * 0.72);
+    int panel2H = (int)(h * 0.25);
+    int panel2Y = (int)(h * 0.68);
     jPanel2.setBounds((w - panel2W) / 2, panel2Y, panel2W, panel2H);
 
     int btnW   = (int)(panel2W * 0.42);
     int btnH   = (int)(h * 0.06);
     int gap    = panel2W - btnW * 2;
-    int btnTop = (int)(panel2H * 0.3);
+    int btnTop = (int)(panel2H * 0.10);
 
     int startW = (int)(panel2W * 0.90);
     int startH = (int)(h * 0.07);
-    int startY = (int)(panel2H * 0.75);
+    int startY = Math.min((int)(panel2H * 0.55), panel2H - startH - (int)(h * 0.01));
 
     PlayerButton.setBounds(0, btnTop, btnW, btnH);
     AI_PlayerButton.setBounds(btnW + gap, btnTop, btnW, btnH);
     StartButton.setBounds((panel2W - startW) / 2, startY, startW, startH);
 
     int panel3Top    = (int)(h * 0.28);
-    int panel3Height = (int)(h * 0.50);
-    int panel3W      = (int)(w * 0.50);
+    int panel3Bottom = panel2Y - (int)(h * 0.01);
+    int panel3Height = panel3Bottom - panel3Top;
+    int panel3W      = (int)(w * 0.55);
     jPanel3.setBounds((w - panel3W) / 2, panel3Top, panel3W, panel3Height);
 
-    float btnFont = Math.max(14f, h * 0.030f);
+    int totalRows = getRowCount();
+    int rowSlotH = panel3Height / 6;
+    int fieldH = (int)(h * 0.045);
+    int fieldW  = (int)(panel3W * 0.32);
+    Dimension fieldSize = new Dimension(fieldW, fieldH);
+
+    for (Component c : jPanel3.getComponents()) {
+        if (!(c instanceof JPanel)) continue;
+        JPanel row = (JPanel) c;
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowSlotH));
+        row.setPreferredSize(new Dimension(panel3W, rowSlotH));
+        for (Component inner : row.getComponents()) {
+            if (inner instanceof JTextField) {
+                inner.setPreferredSize(fieldSize);
+                inner.setMinimumSize(fieldSize);
+                inner.setMaximumSize(fieldSize);
+            }
+        }
+    }
+
+    float btnFont = h * 0.030f;
     PlayerButton.setFont(uiFont(btnFont));
     AI_PlayerButton.setFont(uiFont(btnFont));
     StartButton.setFont(uiFont(btnFont * 1.8f));
@@ -223,193 +241,185 @@ private void layoutComponents() {
         }
     }
     
-    private void updateButtonState() {
-    boolean full = playerCount >= 6;
-    PlayerButton.setEnabled(!full);
-    AI_PlayerButton.setEnabled(!full);
-    StartButton.setEnabled(playerCount > 0);
-    }
-
-    private void resetRowSizes() {
-        int fieldHeight = (int)(jLayeredPane1.getHeight() * 0.045);
-        int fieldWidth  = (int)(jPanel3.getWidth() * 0.25);
-        Dimension fieldSize = new Dimension(fieldWidth, fieldHeight);
-        for (Component c : jPanel3.getComponents()) {
-            if (!(c instanceof JPanel)) continue;
-            JPanel row = (JPanel) c;
-            for (Component inner : row.getComponents()) {
-                if (inner instanceof JTextField) {
-                    inner.setPreferredSize(fieldSize);
-                    inner.setMinimumSize(fieldSize);
-                    inner.setMaximumSize(fieldSize);
-                    inner.revalidate();
-                }
-            }
+        private void updateButtonState() {
+        boolean full = playerCount >= 6;
+        PlayerButton.setEnabled(!full);
+        AI_PlayerButton.setEnabled(!full);
+        StartButton.setEnabled(playerCount > 0);
         }
-    }
-
-    private void removeRowAndSpacer(JPanel row) {
-        int index = -1;
-
-        Component[] comps = jPanel3.getComponents();
-        for (int i = 0; i < comps.length; i++) {
-            if (comps[i] == row) {
-                index = i;
-                break;
-            }
+        private void initSlots() {
+        for (int i = 0; i < 6; i++) {
+            JPanel placeholder = new JPanel();
+            placeholder.setOpaque(false);
+            slots[i] = placeholder;
+            jPanel3.add(placeholder);
         }
-
-        if (index != -1) {
-            jPanel3.remove(index);       
-            if (index < jPanel3.getComponentCount()) {
-                jPanel3.remove(index);   
-            }
-        }
-    }
-
-   private JPanel createHostRow() {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER,10,10));
-        int rowH = Math.max(40, (int)(jLayeredPane1.getHeight() * 0.07));
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowH));        
-        row.setOpaque(false);
-
-        JTextField nameField = new JTextField("Player 1", 12);
-        int fieldHeight = (int)(jLayeredPane1.getHeight() * 0.045);
-        nameField.setPreferredSize(new Dimension((int)(jPanel3.getWidth() * 0.25), fieldHeight));
-        JLabel spacer = new JLabel();
-        int spacerW = (int)(jPanel3.getWidth() * 0.5);
-        int spacerH = fieldHeight;                       
-        spacer.setPreferredSize(new Dimension(spacerW, spacerH));   
-        row.add(nameField);
-
-        players[0] = row;
-
-        jPanel3.add(row);
-        row.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
         jPanel3.revalidate();
-        jPanel3.repaint();
-
-        return row;
     }
 
+    private int firstEmptySlot() {
+        for (int i = 0; i < 6; i++) {
+            if (slots[i].getComponentCount() == 0) return i;
+        }
+        return -1;
+    }
 
-    private JPanel createHumanPlayerRow(int number) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
-        row.setOpaque(false);
-        int rowH = Math.max(40, (int)(jLayeredPane1.getHeight() * 0.07));
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowH));
+    private void fillSlotWithHuman(int slotIndex, int number) {
+        JPanel slot = slots[slotIndex];
+        slot.removeAll();
+        slot.setLayout(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        slot.putClientProperty("type", null);
+
         JTextField nameField = new RoundedTextField("Player " + number, 12);
-        int fieldHeight = (int)(jLayeredPane1.getHeight() * 0.045);
-        nameField.setPreferredSize(new Dimension((int)(jPanel3.getWidth() * 0.25), fieldHeight));
         ImageIcon icon = new ImageIcon(getClass().getResource("/img/trash_icon.png"));
-        int iconSize = Math.max(16, (int)(jLayeredPane1.getHeight() * 0.025));
-        Image scaled = icon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
-        JButton deleteButton1 = new JButton(new ImageIcon(scaled));
-        int btnSize = Math.max(24, (int)(jLayeredPane1.getHeight() * 0.033));
-        deleteButton1.setPreferredSize(new Dimension(btnSize, btnSize)); 
-        deleteButton1.setBorderPainted(false); 
-        deleteButton1.setContentAreaFilled(false); 
-        deleteButton1.addActionListener(e -> {
-            removeRowAndSpacer(row);
-            playerCount = getRowCount();
-            updateButtonState();
-            resetRowSizes();
-            jPanel3.revalidate();
-            jPanel3.repaint();
-            try
-            {
-                AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-                Clip clip = AudioSystem.getClip();
-                clip.open(audioInput);
-                clip.start();
-            }
-            catch (Exception ex)
-            {
-                System.out.println(ex);
-            }
-        });
-        JLabel spacer = new JLabel();
-        int spacerW = (int)(jPanel3.getWidth() * 0.5);
-        int spacerH = fieldHeight;                       
-        spacer.setPreferredSize(new Dimension(spacerW, spacerH));        
-        row.add(deleteButton1);
-        row.add(nameField);
-        row.add(spacer);  
-        return row;
-    }
-
-    private JPanel createAIPlayerRow(int number) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
-        row.setOpaque(false);
-        int rowH = Math.max(40, (int)(jLayeredPane1.getHeight() * 0.07));
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowH));        
-        row.putClientProperty("type", "AI");
-        row.setOpaque(false);
-        JTextField nameField = new RoundedTextField("AI Player " + number, 12);
-        int fieldHeight = (int)(jLayeredPane1.getHeight() * 0.045);
-        nameField.setPreferredSize(new Dimension((int)(jPanel3.getWidth() * 0.25), fieldHeight));
-        ImageIcon icon = new ImageIcon(getClass().getResource("/img/trash_icon.png"));
-        int iconSize = Math.max(16, (int)(jLayeredPane1.getHeight() * 0.025));
+        int iconSize = (int)(jLayeredPane1.getHeight() * 0.025);
         Image scaled = icon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
         JButton deleteButton = new JButton(new ImageIcon(scaled));
-        int btnSize = Math.max(24, (int)(jLayeredPane1.getHeight() * 0.033));
-        deleteButton.setPreferredSize(new Dimension(btnSize, btnSize)); 
-        deleteButton.setBorderPainted(false); 
-        deleteButton.setContentAreaFilled(false); 
-        deleteButton.setOpaque(false);
+        int btnSize = (int)(jLayeredPane1.getHeight() * 0.033);
+        deleteButton.setPreferredSize(new Dimension(btnSize, btnSize));
+        deleteButton.setBorderPainted(false);
+        deleteButton.setContentAreaFilled(false);
         deleteButton.addActionListener(e -> {
-            removeRowAndSpacer(row);
-            playerCount = getRowCount();
+            slots[slotIndex].setBorder(null);
+            for (int i = slotIndex; i < 5; i++) {
+                JPanel next = slots[i + 1];
+                if (next.getComponentCount() == 0) {
+                    slots[i].removeAll();
+                    slots[i].putClientProperty("type", null);
+                    slots[i].revalidate();
+                    slots[i].repaint();
+                    break;
+                }
+
+                String name = "";
+                boolean isAI = "AI".equals(next.getClientProperty("type"));
+                for (Component c : next.getComponents()) {
+                    if (c instanceof JTextField) {
+                        name = ((JTextField) c).getText();
+                        break;
+                    }
+                }
+
+                if (isAI) {
+                    fillSlotWithAI(i, 0);
+                } else {
+                    fillSlotWithHuman(i, 0);
+                }
+                for (Component c : slots[i].getComponents()) {
+                    if (c instanceof JTextField) {
+                        ((JTextField) c).setText(name);
+                        break;
+                    }
+                }
+            }
+
+            playerCount--;
             updateButtonState();
-            resetRowSizes();
-            jPanel3.revalidate();
-            jPanel3.repaint();
-            try
-            {
-                AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-                Clip clip = AudioSystem.getClip();
-                clip.open(audioInput);
-                clip.start();
-            }
-            catch (Exception ex)
-            {
-                System.out.println(ex);
-            }
+            SwingUtilities.invokeLater(() -> layoutComponents());
         });
 
+        slot.add(Box.createHorizontalStrut(NAME_LEFT_MARGIN));
+        slot.add(deleteButton);
+        slot.add(nameField);
+        slot.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 0));
+        slot.revalidate();
+        slot.repaint();
+    }
+
+    private void fillSlotWithAI(int slotIndex, int number) {
+        JPanel slot = slots[slotIndex];
+        slot.removeAll();
+        slot.setLayout(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        slot.putClientProperty("type", "AI");
+
+        JTextField nameField = new RoundedTextField("AI Player " + number, 12);
+        ImageIcon icon = new ImageIcon(getClass().getResource("/img/trash_icon.png"));
+        int iconSize = (int)(jLayeredPane1.getHeight() * 0.025);
+        Image scaled = icon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
+        JButton deleteButton = new JButton(new ImageIcon(scaled));
+        int btnSize = (int)(jLayeredPane1.getHeight() * 0.033);
+        deleteButton.setPreferredSize(new Dimension(btnSize, btnSize));
+        deleteButton.setBorderPainted(false);
+        deleteButton.setContentAreaFilled(false);
+        deleteButton.setOpaque(false);
+        deleteButton.addActionListener(e -> {
+            slots[slotIndex].setBorder(null);
+            for (int i = slotIndex; i < 5; i++) {
+                JPanel next = slots[i + 1];
+                if (next.getComponentCount() == 0) {
+                    slots[i].removeAll();
+                    slots[i].putClientProperty("type", null);
+                    slots[i].revalidate();
+                    slots[i].repaint();
+                    break;
+                }
+
+                String name = "";
+                boolean isAI = "AI".equals(next.getClientProperty("type"));
+                for (Component c : next.getComponents()) {
+                    if (c instanceof JTextField) {
+                        name = ((JTextField) c).getText();
+                        break;
+                    }
+                }
+
+                if (isAI) {
+                    fillSlotWithAI(i, 0);
+                } else {
+                    fillSlotWithHuman(i, 0);
+                }
+                for (Component c : slots[i].getComponents()) {
+                    if (c instanceof JTextField) {
+                        ((JTextField) c).setText(name);
+                        break;
+                    }
+                }
+            }
+
+            playerCount--;
+            updateButtonState();
+            SwingUtilities.invokeLater(() -> layoutComponents());
+        });
+
+        float labelFont = jLayeredPane1.getHeight() * 0.022f;
+        int fieldHeight = (int)(jLayeredPane1.getHeight() * 0.045);
+        int fieldWidth  = (int)(jPanel3.getWidth() * 0.32);
         JLabel easyLabel = new JLabel("Easy");
         easyLabel.setForeground(Color.BLACK);
-        easyLabel.setFont(uiFont(Math.max(14f, jLayeredPane1.getHeight() * 0.022f)));
+        easyLabel.setFont(uiFont(labelFont));
         JSlider difficultySlider = new JSlider(0, 1, 0);
         difficultySlider.setUI(new ThemedSliderUI(difficultySlider));
         difficultySlider.setOpaque(false);
         difficultySlider.setBackground(new Color(0,0,0,0));
-
+        int sliderW = (int)(jPanel3.getWidth() * 0.28);
+        difficultySlider.setPreferredSize(new Dimension(sliderW, fieldHeight));
         JLabel hardLabel = new JLabel("Hard");
         hardLabel.setForeground(Color.BLACK);
-        hardLabel.setFont(uiFont(Math.max(14f, jLayeredPane1.getHeight() * 0.022f)));
-        int spacerSz = Math.max(40, (int)(jLayeredPane1.getWidth() * 0.045));
+        hardLabel.setFont(uiFont(labelFont));
         JLabel spacer = new JLabel();
-        spacer.setPreferredSize(new Dimension(spacerSz, Math.max(20, (int)(jLayeredPane1.getHeight() * 0.030)))); 
+        spacer.setPreferredSize(new Dimension((int)(fieldWidth * 0.3), fieldHeight));
 
-        row.add(deleteButton);
-        row.add(nameField);
-        row.add(spacer);
-        row.add(easyLabel);
-        row.add(difficultySlider);
-        row.add(hardLabel);
-
-        return row;
+        slot.add(Box.createHorizontalStrut(NAME_LEFT_MARGIN));
+        slot.add(deleteButton);
+        slot.add(nameField);
+        slot.add(spacer);
+        slot.add(easyLabel);
+        slot.add(difficultySlider);
+        slot.add(hardLabel);
+        slot.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 0));
+        slot.revalidate();
+        slot.repaint();
     }
-
 
     private int getRowCount() {
         int count = 0;
-        for (Component c : jPanel3.getComponents()) {
-            if (c instanceof JPanel) count++;
+        for (JPanel slot : slots) {
+            if (slot != null && slot.getComponentCount() > 0) count++;
         }
         return count;
     }
+
+
 
     @SuppressWarnings("unchecked")
     // DONT EDIT PLEASSSSE
@@ -570,8 +580,9 @@ private void layoutComponents() {
 
         int idCounter = 1;
 
-        for (Component comp : jPanel3.getComponents()) {
-            if (!(comp instanceof JPanel)) continue;
+            for (Component comp : jPanel3.getComponents()) {
+                if (!(comp instanceof JPanel)) continue;
+                if (((JPanel) comp).getComponentCount() == 0) continue;
 
             JPanel row = (JPanel) comp;
             JTextField nameField = null;
@@ -618,13 +629,11 @@ private void layoutComponents() {
         this.setVisible(false);
     }                                           
 
-    private void AI_PlayerButtonActionPerformed(java.awt.event.ActionEvent evt) {                                                
+    private void AI_PlayerButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        int slot = firstEmptySlot();
+        if (slot == -1) return;
         int number = getRowCount() + 1;
-        JPanel row = createAIPlayerRow(number);
-
-        jPanel3.add(row);
-        jPanel3.add(Box.createRigidArea(new Dimension(0, 10)));
-
+        fillSlotWithAI(slot, number);
         playerCount = getRowCount();
         updateButtonState();
         SwingUtilities.invokeLater(() -> layoutComponents());
@@ -641,13 +650,11 @@ private void layoutComponents() {
         }
     }                                               
 
-    private void PlayerButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
+    private void PlayerButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        int slot = firstEmptySlot();
+        if (slot == -1) return;
         int number = getRowCount() + 1;
-        JPanel row = createHumanPlayerRow(number);
-
-        jPanel3.add(row);
-        jPanel3.add(Box.createRigidArea(new Dimension(0, 10)));
-
+        fillSlotWithHuman(slot, number);
         playerCount = getRowCount();
         updateButtonState();
         SwingUtilities.invokeLater(() -> layoutComponents());

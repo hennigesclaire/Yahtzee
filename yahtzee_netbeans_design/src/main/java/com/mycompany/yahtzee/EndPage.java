@@ -26,7 +26,7 @@ public class EndPage extends javax.swing.JFrame {
     private JLabel leaderboardTitle;
     private JPanel leaderboardList;
     private RoundedButton playAgainButton;
-    private int rowSlotH = 52; 
+    private int rowSlotH; // set as % of height in layoutComponentsIn
 
     public EndPage(TurnManager tm) {
         this.tm = tm;
@@ -182,44 +182,45 @@ public class EndPage extends javax.swing.JFrame {
         int sideInset = (int)(W * 0.08);
         int innerW    = W - sideInset * 2;
 
-        int goH = Math.max(60, (int)(H * 0.13));
-        gameOverLabel.setFont(new Font("Bauhaus 93", Font.BOLD, Math.max(40, (int)(goH * 0.72f))));
+        int goH = Math.max((int)(H * 0.08), (int)(H * 0.13));
+        gameOverLabel.setFont(new Font("Bauhaus 93", Font.BOLD, Math.max((int)(H * 0.05), (int)(goH * 0.72f))));
         gameOverLabel.setBounds(sideInset, (int)(topInset *1.3), innerW, goH);
 
-        int wlH = Math.max(28, (int)(H * 0.05));
+        int wlH = Math.max((int)(H * 0.032), (int)(H * 0.05));
         int wlY = topInset + goH + (int)(H * 0.01);
-        winnerLabel.setFont(uiFont(Math.max(16f, wlH * 0.70f)));
+        winnerLabel.setFont(uiFont(Math.max((int)(H * 0.020f), (int)(wlH * 0.70f))));
         winnerLabel.setBounds(sideInset, wlY, innerW, wlH);
 
-        int wnH = Math.max(40, (int)(H * 0.08));
-        int wnY = wlY + wlH + 2;
-        winnerNameLabel.setFont(uiFont(Math.max(22f, wnH * 0.68f)));
+        int wnH = Math.max((int)(H * 0.055), (int)(H * 0.08));
+        int wnY = wlY + wlH + (int)(H * 0.003);
+        winnerNameLabel.setFont(uiFont(Math.max((int)(H * 0.028f), (int)(wnH * 0.68f))));
         winnerNameLabel.setBounds(sideInset, wnY, innerW, wnH);
 
         int playerCount = (tm != null && tm.getPlayers() != null) ? tm.getPlayers().size() : 1;
-        int lbPad    = 12;
-        int lbTitleH = Math.max(28, (int)(H * 0.055));
-        rowSlotH = Math.max(36, (int)(H * 0.070));
+        int lbPad    = (int)(W * 0.012);
+        int lbTitleH = Math.max((int)(H * 0.030), (int)(H * 0.055));
+        rowSlotH = Math.max((int)(H * 0.045), (int)(H * 0.070));
         for (java.awt.Component c : leaderboardList.getComponents()) {
             if (c instanceof JPanel) {
                 ((JPanel)c).setMaximumSize(new Dimension(Integer.MAX_VALUE, rowSlotH));
                 ((JPanel)c).setPreferredSize(new Dimension(Integer.MAX_VALUE, rowSlotH));
             }
         }
-        int lbH      = lbTitleH + 6 * rowSlotH + lbPad * 3;  
+        int lbTitleGap = (int)(H * 0.008);
+        int lbH      = lbTitleH + 6 * rowSlotH + lbPad * 3 + lbTitleGap;
         int lbW      = Math.min(innerW, (int)(W * 0.52));
         int lbX      = (W - lbW) / 2;
         int lbY      = wnY + wnH + (int)(H * 0.025);
         leaderboardPanel.setBounds(lbX, lbY, lbW, lbH);
-        leaderboardTitle.setFont(uiFont(Math.max(14f, lbTitleH * 0.65f)));
+        leaderboardTitle.setFont(uiFont(Math.max((int)(H * 0.018f), (int)(lbTitleH * 0.65f))));
         leaderboardTitle.setBounds(lbPad, lbPad, lbW - lbPad * 2, lbTitleH);
-        leaderboardList.setBounds(lbPad, lbPad + lbTitleH + 4, lbW - lbPad * 2, 6 * rowSlotH);
+        leaderboardList.setBounds(lbPad, lbPad + lbTitleH + lbTitleGap, lbW - lbPad * 2, 6 * rowSlotH);
 
-        int btnH = Math.max(44, (int)(H * 0.07));
-        int btnW = Math.max(180, (int)(W * 0.20));
+        int btnH = Math.max((int)(H * 0.055), (int)(H * 0.07));
+        int btnW = Math.max((int)(W * 0.14), (int)(W * 0.20));
         int btnY = lbY + lbH + (int)(H * 0.035);
         playAgainButton.setBounds((W - btnW) / 2, btnY, btnW, btnH);
-        playAgainButton.setFont(uiFont(Math.max(16f, btnH * 0.40f)));
+        playAgainButton.setFont(uiFont(Math.max((int)(H * 0.020f), (int)(btnH * 0.40f))));
 
         lp.revalidate();
         lp.repaint();

@@ -618,6 +618,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
 
                     if (t.completeGame()) {
                         new EndPage(t).setVisible(true);
+                        dispose();
                     } else {
                         pendingCategory = null;
                         t.nextPlayer(); t.resetRolls();
