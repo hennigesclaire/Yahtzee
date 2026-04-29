@@ -62,6 +62,7 @@ public class StartPageDesign extends javax.swing.JFrame {
         java.util.logging.Logger.getLogger(StartPageDesign.class.getName());
     private int playerCount = 1;
     private final int NAME_LEFT_MARGIN = 60;
+    private static boolean playing_music = false;
 
 public StartPageDesign() {   
     UIManager.put("Slider.foreground", new Color(230, 120, 40));
@@ -133,6 +134,23 @@ public StartPageDesign() {
     StartButton.setEnabled(false);
 
     layoutComponents();
+    if(!playing_music) initMusic();
+}
+
+private void initMusic()
+{
+    playing_music = true;
+    try
+    {
+        AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/background.wav"));
+        Clip clip = AudioSystem.getClip();
+        clip.open(audioInput);
+        clip.loop(Clip.LOOP_CONTINUOUSLY);
+    }
+    catch (Exception e)
+    {
+        System.out.println(e);
+    }
 }
 
 private Font uiFont(float size) {
