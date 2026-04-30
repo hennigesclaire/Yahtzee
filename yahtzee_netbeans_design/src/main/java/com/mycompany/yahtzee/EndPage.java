@@ -100,7 +100,10 @@ public class EndPage extends javax.swing.JFrame {
         playAgainButton = new RoundedButton("Play Again");
         playAgainButton.setFont(uiFont(28f));
         playAgainButton.addActionListener(e -> {
-            new StartPageDesign().setVisible(true);
+            StartPageDesign sp = new StartPageDesign();
+            sp.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            sp.setVisible(true);
+            this.setVisible(false);
             dispose();
         });
         contentPanel.add(playAgainButton);

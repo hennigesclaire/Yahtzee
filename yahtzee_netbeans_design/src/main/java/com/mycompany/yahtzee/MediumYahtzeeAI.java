@@ -32,8 +32,13 @@ public class MediumYahtzeeAI implements YahtzeeAI{
         
         // Filter 2: If we have 4 of a kind, keep them
         Set<Integer> fourKindKeep = checkForFourOfKind(currentDice);
-        if (fourKindKeep != null && fourKindKeep.size() == 4) {
-            return fourKindKeep;
+        if (fourKindKeep != null && fourKindKeep.size() >= 4) {
+            // ***
+            boolean fourFilled = scoreCard.isCategoryFilled(Category.FOUR_OF_A_KIND);
+            boolean yahtzeeFilled = scoreCard.isCategoryFilled(Category.YAHTZEE);
+            if (!fourFilled || !yahtzeeFilled) {
+                return fourKindKeep;
+            }
         }
         
         // Otherwise, evaluate all possibilities
@@ -105,14 +110,18 @@ public class MediumYahtzeeAI implements YahtzeeAI{
         }
         
         // Strategic Filter 2: Penalize wasting high-value categories
-        if (category == Category.YAHTZEE && score == 0) {
-            value -= 20; // Heavy penalty for zeroing Yahtzee
-        }
-        if (category == Category.LARGE_STRAIGHT && score == 0) {
-            value -= 15;
-        }
-        if (category == Category.FULL_HOUSE && score == 0) {
-            value -= 12;
+        if (category == Category.YAHTZEE && score == 0)        { value -= 20; }
+        if (category == Category.LARGE_STRAIGHT && score == 0) { value -= 15; }
+        if (category == Category.FOUR_OF_A_KIND && score == 0) { value -= 15; }
+        if (category == Category.FULL_HOUSE && score == 0)     { value -= 12; }
+        if (category == Category.THREE_OF_A_KIND && score == 0){ value -= 10; }
+
+        // added to prefer zeroing four of kind instead of 3
+        if (category == Category.FOUR_OF_A_KIND && score > 0) {
+            Integer threeScore = allPossible.get(Category.THREE_OF_A_KIND);
+            if (threeScore != null && score >= threeScore) {
+                value += 6;
+            }
         }
         
         // Strategic Filter 3: Late game - grab points when available

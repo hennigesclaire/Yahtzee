@@ -832,11 +832,13 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 animateLeaderboard(() -> {
 
                     if (t.completeGame()) {
+                        StartPageDesign.startPageMusicClip = backgroundMusicClip;
+                        backgroundMusicClip = null;
                         EndPage ep = new EndPage(t);
                         ep.setExtendedState(JFrame.MAXIMIZED_BOTH);
                         ep.setVisible(true);
                         dispose();
-                    } else {
+                    }else {
                         pendingCategory = null;
                         t.nextPlayer(); t.resetRolls();
                         spinPanel(() -> {
