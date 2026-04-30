@@ -57,6 +57,11 @@ public class Player {
     {
         return name;
     }
+
+    public void setUsername(String newName)
+    {
+        name = newName;
+    }
     public int getRollsLeft(){
         return rolls;
     }

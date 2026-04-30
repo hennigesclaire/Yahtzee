@@ -35,6 +35,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.JFrame;
+import javax.swing.SwingConstants;
 import javax.swing.text.*;
 import javax.swing.plaf.basic.BasicSliderUI;
 
@@ -63,6 +64,7 @@ public class StartPageDesign extends javax.swing.JFrame {
     private int playerCount = 1;
     private final int NAME_LEFT_MARGIN = 60;
     private static boolean playing_music = false;
+    public static volatile Clip startPageMusicClip = null;
 
 public StartPageDesign() {   
     UIManager.put("Slider.foreground", new Color(230, 120, 40));
@@ -145,6 +147,7 @@ private void initMusic()
         AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/background.wav"));
         Clip clip = AudioSystem.getClip();
         clip.open(audioInput);
+        startPageMusicClip = clip;
         clip.loop(Clip.LOOP_CONTINUOUSLY);
     }
     catch (Exception e)
@@ -203,16 +206,60 @@ private void layoutComponents() {
     int fieldW  = (int)(panel3W * 0.32);
     Dimension fieldSize = new Dimension(fieldW, fieldH);
 
+    int btnSz    = (int)(jLayeredPane1.getHeight() * 0.033);
+    int rowPad   = 16; 
+    int trashX   = rowPad + NAME_LEFT_MARGIN;
+    int nameX    = trashX + btnSz + 8;
+    int sliderGapX  = nameX + fieldW + (int)(panel3W * 0.04); 
+    float smallFont = h * 0.022f;
+    int easyW    = (int)(panel3W * 0.09);
+    int sliderW2 = (int)(panel3W * 0.28);
+    int hardW    = (int)(panel3W * 0.09);
+    int sliderX  = sliderGapX + easyW;
+    int hardX    = sliderX + sliderW2;
+
     for (Component c : jPanel3.getComponents()) {
         if (!(c instanceof JPanel)) continue;
         JPanel row = (JPanel) c;
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowSlotH));
         row.setPreferredSize(new Dimension(panel3W, rowSlotH));
-        for (Component inner : row.getComponents()) {
-            if (inner instanceof JTextField) {
-                inner.setPreferredSize(fieldSize);
-                inner.setMinimumSize(fieldSize);
-                inner.setMaximumSize(fieldSize);
+
+        int cy  = (rowSlotH - fieldH) / 2;
+        int bcy = (rowSlotH - btnSz)  / 2;
+
+        boolean isAI = "AI".equals(row.getClientProperty("type"));
+
+        Object db = row.getClientProperty("deleteButton");
+        if (db instanceof JButton)
+            ((JButton) db).setBounds(trashX, bcy, btnSz, btnSz);
+
+        if (isAI) {
+            Object nl = row.getClientProperty("nameLabel");
+            Object el = row.getClientProperty("easyLabel");
+            Object ds = row.getClientProperty("difficultySlider");
+            Object hl = row.getClientProperty("hardLabel");
+            if (nl instanceof JLabel) {
+                JLabel lbl = (JLabel) nl;
+                lbl.setFont(new Font("TW Cen MT Condensed", Font.BOLD, Math.max(14, (int)(fieldH * 0.45))));
+                lbl.setBounds(nameX, cy, fieldW, fieldH);
+            }
+            if (el instanceof JLabel) {
+                JLabel lbl = (JLabel) el;
+                lbl.setFont(uiFont(smallFont));
+                lbl.setBounds(sliderGapX, cy, easyW, fieldH); 
+            }
+            if (ds instanceof JSlider)
+                ((JSlider) ds).setBounds(sliderX, cy, sliderW2, fieldH);
+            if (hl instanceof JLabel) {
+                JLabel lbl = (JLabel) hl;
+                lbl.setFont(uiFont(smallFont));
+                lbl.setBounds(hardX, cy, hardW, fieldH);
+            }
+        } else {
+            Object nf = row.getClientProperty("nameField");
+            if (nf instanceof JTextField) {
+                JTextField tf = (JTextField) nf;
+                tf.setBounds(nameX, cy, fieldW, fieldH);
             }
         }
     }
@@ -285,10 +332,32 @@ private void layoutComponents() {
     private void fillSlotWithHuman(int slotIndex, int number) {
         JPanel slot = slots[slotIndex];
         slot.removeAll();
-        slot.setLayout(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        slot.setLayout(null);
         slot.putClientProperty("type", null);
+        slot.putClientProperty("nameEdited", Boolean.FALSE);
 
-        JTextField nameField = new RoundedTextField("Player " + number, 12);
+        boolean[] suppressListener = {false};
+
+        String initialText = (number > 0) ? "Player " + number : "Player";
+        JTextField nameField = new RoundedTextField(initialText, 12);
+
+        nameField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void onChange() {
+                if (!suppressListener[0]) {
+                    slot.putClientProperty("nameEdited", Boolean.TRUE);
+                }
+            }
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e)  { onChange(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e)  { onChange(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) {}
+        });
+
+        slot.putClientProperty("nameFieldSetter", (java.util.function.Consumer<String>) text -> {
+            suppressListener[0] = true;
+            nameField.setText(text);
+            suppressListener[0] = false;
+        });
+
         ImageIcon icon = new ImageIcon(getClass().getResource("/img/trash_icon.png"));
         int iconSize = (int)(jLayeredPane1.getHeight() * 0.025);
         Image scaled = icon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
@@ -299,58 +368,90 @@ private void layoutComponents() {
         deleteButton.setContentAreaFilled(false);
         deleteButton.addActionListener(e -> {
             slots[slotIndex].setBorder(null);
-            for (int i = slotIndex; i < 5; i++) {
-                JPanel next = slots[i + 1];
-                if (next.getComponentCount() == 0) {
-                    slots[i].removeAll();
-                    slots[i].putClientProperty("type", null);
-                    slots[i].revalidate();
-                    slots[i].repaint();
-                    break;
-                }
-
-                String name = "";
-                boolean isAI = "AI".equals(next.getClientProperty("type"));
+            int lastFilled = slotIndex;
+            for (int i = slotIndex + 1; i < 6; i++) {
+                if (slots[i].getComponentCount() > 0) lastFilled = i;
+                else break;
+            }
+            int count = lastFilled - slotIndex;
+            String[]  names  = new String[count];
+            boolean[] isAIs  = new boolean[count];
+            boolean[] edited = new boolean[count];
+            for (int i = 0; i < count; i++) {
+                JPanel next = slots[slotIndex + 1 + i];
+                isAIs[i]  = "AI".equals(next.getClientProperty("type"));
+                edited[i] = Boolean.TRUE.equals(next.getClientProperty("nameEdited"));
+                names[i]  = "";
                 for (Component c : next.getComponents()) {
-                    if (c instanceof JTextField) {
-                        name = ((JTextField) c).getText();
-                        break;
-                    }
-                }
-
-                if (isAI) {
-                    fillSlotWithAI(i, 0);
-                } else {
-                    fillSlotWithHuman(i, 0);
-                }
-                for (Component c : slots[i].getComponents()) {
-                    if (c instanceof JTextField) {
-                        ((JTextField) c).setText(name);
-                        break;
+                    if (c instanceof JTextField) { names[i] = ((JTextField) c).getText(); break; }
+                    if (c instanceof JLabel && !"AI".equals(next.getClientProperty("type"))) {
                     }
                 }
             }
+            for (int i = 0; i < count; i++) {
+                int destSlot = slotIndex + i;
+                if (isAIs[i]) {
+                    fillSlotWithAI(destSlot, 0);
+                } else {
+                    fillSlotWithHuman(destSlot, 0); 
+                    if (edited[i]) {
+                        @SuppressWarnings("unchecked")
+                        java.util.function.Consumer<String> s =
+                            (java.util.function.Consumer<String>) slots[destSlot].getClientProperty("nameFieldSetter");
+                        if (s != null) s.accept(names[i]);
+                        slots[destSlot].putClientProperty("nameEdited", Boolean.TRUE);
+                    }
+                }
+            }
+            slots[lastFilled].removeAll();
+            slots[lastFilled].putClientProperty("type", null);
+            slots[lastFilled].revalidate();
+            slots[lastFilled].repaint();
 
             playerCount--;
             updateButtonState();
+            refreshAILabels();
+            refreshHumanLabels();
             SwingUtilities.invokeLater(() -> layoutComponents());
         });
 
-        slot.add(Box.createHorizontalStrut(NAME_LEFT_MARGIN));
         slot.add(deleteButton);
         slot.add(nameField);
-        slot.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 0));
+        slot.putClientProperty("deleteButton", deleteButton);
+        slot.putClientProperty("nameField",    nameField);
         slot.revalidate();
         slot.repaint();
+    }
+
+
+    private void refreshHumanLabels() {
+        int humanCounter = 0;
+        for (JPanel slot : slots) {
+            if (slot == null || slot.getComponentCount() == 0) continue;
+            if ("AI".equals(slot.getClientProperty("type"))) continue;
+            humanCounter++;
+            if (Boolean.TRUE.equals(slot.getClientProperty("nameEdited"))) continue;
+            @SuppressWarnings("unchecked")
+            java.util.function.Consumer<String> setter =
+                (java.util.function.Consumer<String>) slot.getClientProperty("nameFieldSetter");
+            String label = "Player " + humanCounter;
+            if (setter != null) {
+                setter.accept(label);
+            } else {
+                for (Component c : slot.getComponents()) {
+                    if (c instanceof JTextField) { ((JTextField) c).setText(label); break; }
+                }
+                slot.putClientProperty("nameEdited", Boolean.FALSE);
+            }
+        }
     }
 
     private void fillSlotWithAI(int slotIndex, int number) {
         JPanel slot = slots[slotIndex];
         slot.removeAll();
-        slot.setLayout(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        slot.setLayout(null);
         slot.putClientProperty("type", "AI");
 
-        JTextField nameField = new RoundedTextField("AI Player " + number, 12);
         ImageIcon icon = new ImageIcon(getClass().getResource("/img/trash_icon.png"));
         int iconSize = (int)(jLayeredPane1.getHeight() * 0.025);
         Image scaled = icon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
@@ -362,71 +463,116 @@ private void layoutComponents() {
         deleteButton.setOpaque(false);
         deleteButton.addActionListener(e -> {
             slots[slotIndex].setBorder(null);
-            for (int i = slotIndex; i < 5; i++) {
-                JPanel next = slots[i + 1];
-                if (next.getComponentCount() == 0) {
-                    slots[i].removeAll();
-                    slots[i].putClientProperty("type", null);
-                    slots[i].revalidate();
-                    slots[i].repaint();
-                    break;
-                }
-
-                String name = "";
-                boolean isAI = "AI".equals(next.getClientProperty("type"));
+            int lastFilled = slotIndex;
+            for (int i = slotIndex + 1; i < 6; i++) {
+                if (slots[i].getComponentCount() > 0) lastFilled = i;
+                else break;
+            }
+            int count = lastFilled - slotIndex;
+            String[]  names  = new String[count];
+            boolean[] isAIs  = new boolean[count];
+            boolean[] edited = new boolean[count];
+            for (int i = 0; i < count; i++) {
+                JPanel next = slots[slotIndex + 1 + i];
+                isAIs[i]  = "AI".equals(next.getClientProperty("type"));
+                edited[i] = Boolean.TRUE.equals(next.getClientProperty("nameEdited"));
+                names[i]  = "";
                 for (Component c : next.getComponents()) {
-                    if (c instanceof JTextField) {
-                        name = ((JTextField) c).getText();
-                        break;
-                    }
+                    if (c instanceof JTextField) { names[i] = ((JTextField) c).getText(); break; }
                 }
-
-                if (isAI) {
-                    fillSlotWithAI(i, 0);
+            }
+            for (int i = 0; i < count; i++) {
+                int destSlot = slotIndex + i;
+                if (isAIs[i]) {
+                    fillSlotWithAI(destSlot, 0);
                 } else {
-                    fillSlotWithHuman(i, 0);
-                }
-                for (Component c : slots[i].getComponents()) {
-                    if (c instanceof JTextField) {
-                        ((JTextField) c).setText(name);
-                        break;
+                    fillSlotWithHuman(destSlot, 0);
+                    if (edited[i]) {
+                        @SuppressWarnings("unchecked")
+                        java.util.function.Consumer<String> s =
+                            (java.util.function.Consumer<String>) slots[destSlot].getClientProperty("nameFieldSetter");
+                        if (s != null) s.accept(names[i]);
+                        slots[destSlot].putClientProperty("nameEdited", Boolean.TRUE);
                     }
                 }
             }
-
+            slots[lastFilled].removeAll();
+            slots[lastFilled].putClientProperty("type", null);
+            slots[lastFilled].revalidate();
+            slots[lastFilled].repaint();
             playerCount--;
             updateButtonState();
+            refreshAILabels();
+            refreshHumanLabels();
             SwingUtilities.invokeLater(() -> layoutComponents());
         });
 
-        float labelFont = jLayeredPane1.getHeight() * 0.022f;
-        int fieldHeight = (int)(jLayeredPane1.getHeight() * 0.045);
-        int fieldWidth  = (int)(jPanel3.getWidth() * 0.32);
+        JLabel nameLabel = new JLabel("AI Player") {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(255, 170, 60));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        nameLabel.setOpaque(false);
+        nameLabel.setForeground(Color.BLACK);
+        nameLabel.setBorder(BorderFactory.createEmptyBorder(4, 20, 4, 20));
+
         JLabel easyLabel = new JLabel("Easy");
         easyLabel.setForeground(Color.BLACK);
-        easyLabel.setFont(uiFont(labelFont));
+        easyLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         JSlider difficultySlider = new JSlider(0, 1, 0);
         difficultySlider.setUI(new ThemedSliderUI(difficultySlider));
         difficultySlider.setOpaque(false);
-        difficultySlider.setBackground(new Color(0,0,0,0));
-        int sliderW = (int)(jPanel3.getWidth() * 0.28);
-        difficultySlider.setPreferredSize(new Dimension(sliderW, fieldHeight));
+        difficultySlider.setBackground(new Color(0, 0, 0, 0));
         JLabel hardLabel = new JLabel("Hard");
         hardLabel.setForeground(Color.BLACK);
-        hardLabel.setFont(uiFont(labelFont));
-        JLabel spacer = new JLabel();
-        spacer.setPreferredSize(new Dimension((int)(fieldWidth * 0.3), fieldHeight));
+        hardLabel.setHorizontalAlignment(SwingConstants.LEFT);
 
-        slot.add(Box.createHorizontalStrut(NAME_LEFT_MARGIN));
+        difficultySlider.addChangeListener(ev -> refreshAILabels());
+
         slot.add(deleteButton);
-        slot.add(nameField);
-        slot.add(spacer);
+        slot.add(nameLabel);
         slot.add(easyLabel);
         slot.add(difficultySlider);
         slot.add(hardLabel);
-        slot.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 0));
+
+        slot.putClientProperty("deleteButton", deleteButton);
+        slot.putClientProperty("nameLabel",nameLabel);
+        slot.putClientProperty("easyLabel",easyLabel);
+        slot.putClientProperty("difficultySlider",difficultySlider);
+        slot.putClientProperty("hardLabel", hardLabel);
+
         slot.revalidate();
         slot.repaint();
+    }
+
+    private void refreshAILabels() {
+        java.util.List<JPanel> easySlots = new java.util.ArrayList<>();
+        java.util.List<JPanel> hardSlots = new java.util.ArrayList<>();
+        for (JPanel slot : slots) {
+            if (slot == null || !("AI".equals(slot.getClientProperty("type")))) continue;
+            Object ds = slot.getClientProperty("difficultySlider");
+            if (ds instanceof JSlider) {
+                if (((JSlider) ds).getValue() == 0) easySlots.add(slot);
+                else                                hardSlots.add(slot);
+            }
+        }
+        boolean multiEasy = easySlots.size() > 1;
+        boolean multiHard = hardSlots.size() > 1;
+        for (int i = 0; i < easySlots.size(); i++) {
+            Object nl = easySlots.get(i).getClientProperty("nameLabel");
+            if (nl instanceof JLabel)
+                ((JLabel) nl).setText(multiEasy ? "Easy AI Player " + (i + 1) : "Easy AI Player");
+        }
+        for (int i = 0; i < hardSlots.size(); i++) {
+            Object nl = hardSlots.get(i).getClientProperty("nameLabel");
+            if (nl instanceof JLabel)
+                ((JLabel) nl).setText(multiHard ? "Hard AI Player " + (i + 1) : "Hard AI Player");
+        }
     }
 
     private int getRowCount() {
@@ -603,31 +749,28 @@ private void layoutComponents() {
                 if (((JPanel) comp).getComponentCount() == 0) continue;
 
             JPanel row = (JPanel) comp;
-            JTextField nameField = null;
-            JSlider difficultySlider = null;
-
-            for (Component inner : row.getComponents()) {
-                if (inner instanceof JTextField)
-                nameField = (JTextField) inner;
-                if (inner instanceof JSlider)
-                difficultySlider = (JSlider) inner;
-            }
-
             boolean isAI = "AI".equals(row.getClientProperty("type"));
 
-            if (isAI && difficultySlider != null) {
-                AIPlayer ai = new AIPlayer(idCounter++);
-
-                if (difficultySlider.getValue() == 0) {
-                    ai.setStrategy(new EasyYahtzeeAI());
-                } else {
-                    ai.setStrategy(new MediumYahtzeeAI());
+            if (isAI) {
+                Object ds  = row.getClientProperty("difficultySlider");
+                Object nl  = row.getClientProperty("nameLabel");
+                if (ds instanceof JSlider) {
+                    String aiName = (nl instanceof JLabel) ? ((JLabel) nl).getText() : ("AI Player " + idCounter);
+                    AIPlayer ai = new AIPlayer(idCounter++);
+                    ai.setUsername(aiName);
+                    if (((JSlider) ds).getValue() == 0) {
+                        ai.setStrategy(new EasyYahtzeeAI());
+                    } else {
+                        ai.setStrategy(new MediumYahtzeeAI());
+                    }
+                    tm.addPlayer(ai);
                 }
-
-                tm.addPlayer(ai);
-            } else if (nameField != null) {
-                tm.addPlayer(new Player(nameField.getText()));
-                idCounter++;
+            } else {
+                Object nf = row.getClientProperty("nameField");
+                if (nf instanceof JTextField) {
+                    tm.addPlayer(new Player(((JTextField) nf).getText()));
+                    idCounter++;
+                }
             }
         }
         try
@@ -650,10 +793,10 @@ private void layoutComponents() {
     private void AI_PlayerButtonActionPerformed(java.awt.event.ActionEvent evt) {
         int slot = firstEmptySlot();
         if (slot == -1) return;
-        int number = getRowCount() + 1;
-        fillSlotWithAI(slot, number);
+        fillSlotWithAI(slot, 0);
         playerCount = getRowCount();
         updateButtonState();
+        refreshAILabels();
         SwingUtilities.invokeLater(() -> layoutComponents());
         try
         {
@@ -671,10 +814,10 @@ private void layoutComponents() {
     private void PlayerButtonActionPerformed(java.awt.event.ActionEvent evt) {
         int slot = firstEmptySlot();
         if (slot == -1) return;
-        int number = getRowCount() + 1;
-        fillSlotWithHuman(slot, number);
+        fillSlotWithHuman(slot, 0); 
         playerCount = getRowCount();
         updateButtonState();
+        refreshHumanLabels();
         SwingUtilities.invokeLater(() -> layoutComponents());
         try
         {

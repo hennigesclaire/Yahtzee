@@ -38,6 +38,7 @@ import java.awt.FontMetrics;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.imageio.ImageIO;
 
 
 public class YahtzeeDesign extends javax.swing.JFrame {
@@ -67,6 +68,14 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private Category pendingCategory = null;
     private TurnManager t = null;
     private java.util.function.Consumer<Float> panelFlipper = p -> {};
+    private boolean soundEffectsOn = true;
+    private volatile boolean musicOn = true;
+    private volatile Clip backgroundMusicClip = null;
+    private javax.swing.JButton menuIconBtn;
+    private javax.swing.JPanel menuDropdown;
+    private javax.swing.JButton soundBtn, musicBtn, helpBtn, aiSpeedBtn;
+    private boolean menuOpen = false;
+    private volatile boolean aiSpeedUp = false;
     private java.util.Map<Integer, Integer> previousRanks = new java.util.HashMap<>();
     private java.util.Map<Integer, JPanel> existingRows = new java.util.HashMap<>();
     private java.util.Map<Integer, JLabel> scoreLabels = new java.util.HashMap<>();
@@ -119,7 +128,16 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         buildComponents();
         wireScoreCard();
+        animateLeaderboard(() -> {}); 
         checkAndPlayAITurn();
+        Clip spClip = StartPageDesign.startPageMusicClip;
+        StartPageDesign.startPageMusicClip = null;
+        if (spClip != null) {
+            backgroundMusicClip = spClip;
+            startMusicLoopThread(spClip);
+        } else {
+            startBackgroundMusic();
+        }
         jLayeredPane1.addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override public void componentResized(java.awt.event.ComponentEvent e) { layoutComponents(); }
         });
@@ -256,9 +274,190 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         jButton1.addActionListener(e -> jButton1ActionPerformed(e));
         jLayeredPane1.add(jButton1);
 
+        menuIconBtn = new javax.swing.JButton() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                try {
+                    java.net.URL url = getClass().getResource("/img/menuIcon.png");
+                    if (url != null) {
+                        java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(url);
+                        g2.drawImage(img, 0, 0, getWidth(), getHeight(), null);
+                    }
+                } catch(Exception ex) {
+                    g2.setColor(new Color(180,20,20));
+                    g2.setFont(new Font("Bauhaus 93", Font.BOLD, 18));
+                    g2.drawString("☰", 8, getHeight()-8);
+                }
+                g2.dispose();
+            }
+        };
+        menuIconBtn.setOpaque(false); menuIconBtn.setContentAreaFilled(false);
+        menuIconBtn.setBorderPainted(false); menuIconBtn.setFocusPainted(false);
+        menuIconBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        menuIconBtn.addActionListener(e -> toggleMenu());
+        jLayeredPane1.add(menuIconBtn, Integer.valueOf(10));
+
+        menuDropdown = new javax.swing.JPanel(null) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(255, 170, 60));
+                g2.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 18, 18);
+                g2.setColor(new Color(200, 120, 20));
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 18, 18);
+                g2.dispose();
+            }
+        };
+        
+        menuDropdown.setOpaque(false);
+        menuDropdown.setVisible(false);
+        
+        musicBtn = makeMenuIconButton("/img/MusicIconOn.png");
+        musicBtn.addActionListener(e -> {
+            playSoundEffect("/sounds/Click.wav");
+            musicOn = !musicOn;
+            if (musicOn) startBackgroundMusic(); else stopBackgroundMusic();
+            updateMenuIcons();
+        });
+        soundBtn = makeMenuIconButton("/img/SoundOnIcon1.png");
+        soundBtn.addActionListener(e -> {
+            if (soundEffectsOn) playSoundEffect("/sounds/Click.wav"); 
+            soundEffectsOn = !soundEffectsOn;
+            updateMenuIcons();
+        });
+        aiSpeedBtn = makeMenuIconButton("/img/SpeedUpIcon.png");
+        aiSpeedBtn.addActionListener(e -> {
+            playSoundEffect("/sounds/Click.wav");
+            aiSpeedUp = !aiSpeedUp;
+            updateMenuIcons();
+        });
+        helpBtn = makeMenuIconButton("/img/helpIcon.png");
+        helpBtn.addActionListener(e -> {
+            menuDropdown.setVisible(false); menuOpen = false;
+            openHelpPage();
+        });
+
+        menuDropdown.add(musicBtn); menuDropdown.add(soundBtn); menuDropdown.add(aiSpeedBtn); menuDropdown.add(helpBtn);
+        jLayeredPane1.add(menuDropdown, Integer.valueOf(11));
+
+        jLayeredPane1.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                if (menuOpen && !menuDropdown.getBounds().contains(e.getPoint())
+                        && !menuIconBtn.getBounds().contains(e.getPoint())) {
+                    menuDropdown.setVisible(false); menuOpen = false;
+                }
+            }
+        });
+
         getContentPane().setLayout(new java.awt.BorderLayout());
         getContentPane().add(jLayeredPane1, java.awt.BorderLayout.CENTER);
         pack();
+    }
+
+    private javax.swing.JButton makeMenuIconButton(String resource) {
+        javax.swing.JButton btn = new javax.swing.JButton() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isRollover()) {
+                    g2.setColor(new Color(255, 200, 100, 120));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                }
+                Object res = getClientProperty("iconRes");
+                String iconPath = (res instanceof String) ? (String) res : null;
+                try {
+                    if (iconPath != null) {
+                        java.net.URL url = getClass().getResource(iconPath);
+                        if (url != null) {
+                            java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(url);
+                            int pad = 4;
+                            g2.drawImage(img, pad, pad, getWidth()-pad*2, getHeight()-pad*2, null);
+                        }
+                    }
+                } catch(Exception ex) { }
+                g2.dispose();
+            }
+        };
+        btn.putClientProperty("iconRes", resource);
+        btn.setOpaque(false); btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false); btn.setFocusPainted(false);
+        btn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        return btn;
+    }
+
+    private void toggleMenu() {
+        menuOpen = !menuOpen;
+        menuDropdown.setVisible(menuOpen);
+        if (menuOpen) menuDropdown.repaint();
+        playSoundEffect("/sounds/Click.wav");
+    }
+
+    private void updateMenuIcons() {
+        String soundRes = soundEffectsOn ? "/img/SoundOnIcon1.png" : "/img/SoundOffIcon1.png";
+        String musicRes = musicOn ? "/img/MusicIconOn.png" : "/img/MusicIconOff.png";
+        String aiSpeedRes = aiSpeedUp ? "/img/SlowDownIcon.png" : "/img/SpeedUpIcon.png";
+        soundBtn.putClientProperty("iconRes", soundRes);
+        musicBtn.putClientProperty("iconRes", musicRes);
+        aiSpeedBtn.putClientProperty("iconRes", aiSpeedRes);
+        soundBtn.repaint(); musicBtn.repaint(); aiSpeedBtn.repaint();
+    }
+
+    private void playSoundEffect(String path) {
+        if (!soundEffectsOn) return;
+        try {
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource(path));
+            Clip clip = AudioSystem.getClip(); clip.open(audioInput); clip.start();
+        } catch (Exception ex) { System.out.println(ex); }
+    }
+
+    private void startBackgroundMusic() {
+        if (!musicOn) return;
+        if (backgroundMusicClip != null) return;
+        try {
+            java.net.URL musicUrl = getClass().getResource("/sounds/background.wav");
+            if (musicUrl == null) { System.out.println("background.wav not found"); return; }
+            AudioInputStream ais = AudioSystem.getAudioInputStream(musicUrl);
+            Clip clip = AudioSystem.getClip();
+            clip.open(ais);
+            backgroundMusicClip = clip;
+            clip.start();
+            startMusicLoopThread(clip);
+        } catch (Exception ex) { System.out.println("Music error: " + ex); }
+    }
+
+    private void startMusicLoopThread(Clip clip) {
+        Thread loopThread = new Thread(() -> {
+            while (clip == backgroundMusicClip && musicOn) {
+                if (!clip.isRunning()) {
+                    if (clip == backgroundMusicClip && musicOn) {
+                        clip.setFramePosition(0);
+                        clip.start();
+                    }
+                }
+                try { Thread.sleep(200); } catch (InterruptedException e) { break; }
+            }
+        });
+        loopThread.setDaemon(true);
+        loopThread.start();
+    }
+    // almost the end of me 
+    private void stopBackgroundMusic() {
+        Clip clip = backgroundMusicClip;
+        backgroundMusicClip = null;
+        if (clip != null) {
+            clip.stop();
+            clip.close();
+        }
+    }
+
+
+    private void openHelpPage() {
+        HelpPage hp = new HelpPage(this);
+        hp.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        hp.setVisible(true);
+        this.setVisible(false);
     }
 
     private javax.swing.JLabel makeSummaryLabel(String text) {
@@ -280,7 +479,28 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         int smallBorder = Math.max(16, (int)(H * 0.030));
 
         int iL = frameArm + frameBuffer, iT = smallBorder;
-        int iR = W - smallBorder, iW = iR - iL, iH = (H - smallBorder) - iT;
+        int menuIconSize = Math.max(36, (int)(W * 0.038));
+        int menuMargin = Math.max(10, (int)(W * 0.012));
+        int menuIconX = W - menuMargin - menuIconSize;
+        int menuIconY = iT + 4;
+        menuIconBtn.setBounds(menuIconX, menuIconY, menuIconSize, menuIconSize);
+
+        int dropBtnSize = Math.max(34, (int)(W * 0.034));
+        int dropPad = 8;
+        int dropW = dropBtnSize + dropPad * 2;
+        int dropH = dropBtnSize * 4 + dropPad * 5;
+        int dropX = menuIconX + menuIconSize - dropW;
+        int dropY = menuIconY + menuIconSize + 4;
+        int alignedIconX = dropX + (dropW - menuIconSize) / 2;
+        menuIconBtn.setBounds(alignedIconX, menuIconY, menuIconSize, menuIconSize);
+        menuDropdown.setBounds(dropX, dropY, dropW, dropH);
+        musicBtn.setBounds(dropPad, dropPad, dropBtnSize, dropBtnSize);
+        soundBtn.setBounds(dropPad, dropPad * 2 + dropBtnSize, dropBtnSize, dropBtnSize);
+        aiSpeedBtn.setBounds(dropPad, dropPad * 3 + dropBtnSize * 2, dropBtnSize, dropBtnSize);
+        helpBtn.setBounds(dropPad, dropPad * 4 + dropBtnSize * 3, dropBtnSize, dropBtnSize);
+
+        int iR = menuIconX - menuMargin;
+        int iW = iR - iL, iH = (H - smallBorder) - iT;
 
         int diceBottomBuffer = smallBorder + 50;
         int diceStripH = (int)(iH * 0.20);
@@ -310,31 +530,35 @@ public class YahtzeeDesign extends javax.swing.JFrame {
 
         jPanel2.setBounds(combX, iT, combW, contentH);
         {
-            int pad = 12, nameH = Math.max(32, (int)(contentH * 0.10));
-            summaryPlayerName.setFont(uiFont(Math.max(15f, nameH * 0.70f)));
+            int pad = 12, nameH = Math.max(28, (int)(contentH * 0.08));
+            summaryPlayerName.setFont(uiFont(Math.max(14f, nameH * 0.70f)));
             summaryPlayerName.setBounds(pad, pad, combW - pad * 2, nameH);
             int contentTop = pad + nameH + 6, bodyH = (contentH - pad) - contentTop;
             int scW = (int)(combW * 0.55), sumX = scW + pad;
-            int labelH = Math.max(22, (int)(bodyH * 0.055));
-            int tableGap = Math.max(4, (int)(bodyH * 0.015));
-            int rowH = Math.max(22, (int)(bodyH * 0.035));
+            int labelH = Math.max(18, (int)(bodyH * 0.050));
+            int tableGap = Math.max(6, (int)(bodyH * 0.025));
+
+            int totalRows = UPPER.length + LOWER.length;
+            int totalLabelH = labelH * 2 + 2 * 2; 
+            int availForRows = bodyH - totalLabelH - tableGap - pad;
+            int rowH = Math.max(18, Math.min(32, availForRows / (totalRows + 1)));
             jTable1.setRowHeight(rowH); jTable2.setRowHeight(rowH);
 
-            Font tableFont = new Font("Bauhaus 93", Font.BOLD, Math.max(10, rowH - 6));
+            Font tableFont = new Font("Bauhaus 93", Font.BOLD, Math.max(9, rowH - 7));
             jTable1.setFont(tableFont);
             jTable2.setFont(tableFont);
 
             int upperH = UPPER.length * rowH, lowerH = LOWER.length * rowH;
             int cy = contentTop;
-            UpperSectionLabel.setFont(uiFont(Math.max(13f, labelH)));
+            UpperSectionLabel.setFont(uiFont(Math.max(12f, labelH * 0.9f)));
             UpperSectionLabel.setBounds(pad, cy, scW - pad * 2, labelH); cy += labelH + 2;
             jScrollPane1.setBounds(pad, cy, scW - pad * 2, upperH);
-            int upperTableEndY = cy + upperH; cy += upperH + tableGap + rowH;
-            LowerSectionLabel.setFont(uiFont(Math.max(13f, labelH)));
+            int upperTableEndY = cy + upperH; cy += upperH + tableGap;
+            LowerSectionLabel.setFont(uiFont(Math.max(12f, labelH * 0.9f)));
             LowerSectionLabel.setBounds(pad, cy, scW - pad * 2, labelH); cy += labelH + 2;
             jScrollPane2.setBounds(pad, cy, scW - pad * 2, lowerH);
-            int summaryRowH = Math.max(30, (int)(bodyH * 0.11));
-            int barH = Math.max(18, (int)(summaryRowH * 0.45));
+            int summaryRowH = Math.max(26, (int)(bodyH * 0.10));
+            int barH = Math.max(16, (int)(summaryRowH * 0.45));
 
             int valW = Math.max(50, (int)(combW * 0.13));
             int valX = combW - pad - valW;
@@ -459,6 +683,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         this.t.createInterface();
         jTable1.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
             @Override public void mouseMoved(java.awt.event.MouseEvent e) {
+                if (t.getCurrentPlayer() instanceof AIPlayer) { upperRenderer.setHoveredRow(-1); jTable1.repaint(); return; }
                 upperRenderer.setHoveredRow(jTable1.rowAtPoint(e.getPoint())); jTable1.repaint();
             }
         });
@@ -468,23 +693,15 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             }
             @Override public void mouseClicked(MouseEvent e) {
                 int row = jTable1.rowAtPoint(e.getPoint()), col = jTable1.columnAtPoint(e.getPoint());
-                if (row >= 0 && col == 1 && turnActive && firstRollDone)
+                if (row >= 0 && col == 1 && turnActive && firstRollDone
+                        && !(t.getCurrentPlayer() instanceof AIPlayer))
                     finalizeCategorySelection(upperModel.getCategoryAt(row));
-                try
-                {
-                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-                    Clip clip = AudioSystem.getClip();
-                    clip.open(audioInput);
-                    clip.start();
-                }
-                catch (Exception ex)
-                {
-                    System.out.println(ex);
-                }
+                playSoundEffect("/sounds/Click.wav");
             }
         });
         jTable2.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
             @Override public void mouseMoved(java.awt.event.MouseEvent e) {
+                if (t.getCurrentPlayer() instanceof AIPlayer) { lowerRenderer.setHoveredRow(-1); jTable2.repaint(); return; }
                 lowerRenderer.setHoveredRow(jTable2.rowAtPoint(e.getPoint())); jTable2.repaint();
             }
         });
@@ -494,19 +711,10 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             }
             @Override public void mouseClicked(MouseEvent e) {
                 int row = jTable2.rowAtPoint(e.getPoint()), col = jTable2.columnAtPoint(e.getPoint());
-                if (row >= 0 && col == 1 && turnActive && firstRollDone)
+                if (row >= 0 && col == 1 && turnActive && firstRollDone
+                        && !(t.getCurrentPlayer() instanceof AIPlayer))
                     finalizeCategorySelection(lowerModel.getCategoryAt(row));
-                try
-                {
-                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-                    Clip clip = AudioSystem.getClip();
-                    clip.open(audioInput);
-                    clip.start();
-                }
-                catch (Exception ex)
-                {
-                    System.out.println(ex);
-                }
+                playSoundEffect("/sounds/Click.wav");
             }
         });
     }
@@ -566,33 +774,22 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             die4.setEnabled(false); die5.setEnabled(false);
             new Thread(() -> {
                 try {
-                    
                     YahtzeeAI brain = ai.getStrategy();
-                    Thread.sleep(1000);
+                    Thread.sleep(aiSpeedUp ? 100 : 1000);
                     java.awt.EventQueue.invokeAndWait(this::performManualRoll);
                     while (t.getRolls() > 0) {
-                        Thread.sleep(1500);
+                        Thread.sleep(aiSpeedUp ? 150 : 1500);
                         int rollsRemaining = t.getRolls();
                         java.util.Set<Integer> toKeep = brain.chooseDiceToKeep(dice, scoreCard, rollsRemaining);
                         if (toKeep.size() == 5) break;
                         for (int j = 0; j < 5; j++) holding[j] = toKeep.contains(j);
                         java.awt.EventQueue.invokeAndWait(() -> { updateHoldLabels(); performManualRoll(); });
                     }
-                    Thread.sleep(1500);
+                    Thread.sleep(aiSpeedUp ? 150 : 1500);
                     int[] currentVals = t.getDiceFromInterface();
                     Category choice = brain.chooseCategory(currentVals, scoreCard);
                     java.awt.EventQueue.invokeLater(() -> finalizeCategorySelection(choice));
-                    try
-                    {
-                        AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-                        Clip clip = AudioSystem.getClip();
-                        clip.open(audioInput);
-                        clip.start();
-                    }
-                    catch (Exception ex)
-                    {
-                        System.out.println(ex);
-                    }
+                    playSoundEffect("/sounds/Click.wav");
                 } catch (Exception ex) { ex.printStackTrace(); }
             }).start();
         } else {
@@ -902,10 +1099,12 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         }
         try
         {
+            if (soundEffectsOn) {
             AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/DiceRoll.wav"));
             Clip clip = AudioSystem.getClip();
             clip.open(audioInput);
             clip.start();
+            }
         }
         catch (Exception e)
         {
@@ -913,10 +1112,12 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         }
         try
         {
+            if (soundEffectsOn) {
             AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
             Clip clip = AudioSystem.getClip();
             clip.open(audioInput);
             clip.start();
+            }
         }
         catch (Exception ex)
         {
@@ -928,81 +1129,31 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     { 
         holding[0] = !holding[0]; 
         die1.setHeld(holding[0]); 
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception ex)
-        {
-            System.out.println(ex);
-        }
+        playSoundEffect("/sounds/Click.wav");
     }
     private void die2ActionPerformed(java.awt.event.ActionEvent evt)
     { 
         holding[1] = !holding[1]; 
         die2.setHeld(holding[1]); 
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception ex)
-        {
-            System.out.println(ex);
-        }
+        playSoundEffect("/sounds/Click.wav");
     }
     private void die3ActionPerformed(java.awt.event.ActionEvent evt)
     { 
         holding[2] = !holding[2]; 
         die3.setHeld(holding[2]); 
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception ex)
-        {
-            System.out.println(ex);
-        }
+        playSoundEffect("/sounds/Click.wav");
     }
     private void die4ActionPerformed(java.awt.event.ActionEvent evt)
     { 
         holding[3] = !holding[3]; 
         die4.setHeld(holding[3]); 
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception ex)
-        {
-            System.out.println(ex);
-        }
+        playSoundEffect("/sounds/Click.wav");
     }
     private void die5ActionPerformed(java.awt.event.ActionEvent evt)
     { 
         holding[4] = !holding[4]; 
         die5.setHeld(holding[4]); 
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception ex)
-        {
-            System.out.println(ex);
-        }
+        playSoundEffect("/sounds/Click.wav");
     }
 
     public static void main(String args[]) {
@@ -1049,12 +1200,11 @@ class BonusProgressBar extends JPanel {
 
 
 class GameFramePanel extends JPanel {
-    private final Color YELLOW       = new Color(247, 201, 72);
+    private final Color YELLOW  = new Color(247, 201, 72);
     private final Color LIGHT_ORANGE = new Color(255, 170, 60);
-    private final Color DARK_ORANGE  = new Color(230, 120, 40);
-    private final Color INTERIOR     = new Color(250, 235, 137);
-    public GameFramePanel() { setOpaque(false); }
-    private java.awt.geom.GeneralPath halfFramePath(int W, int H, int offset, int radius) {
+    private final Color DARK_ORANGE = new Color(230, 120, 40);
+    private final Color INTERIOR  = new Color(250, 235, 137);
+    public GameFramePanel() { setOpaque(false); }    private java.awt.geom.GeneralPath halfFramePath(int W, int H, int offset, int radius) {
         int x = offset, y2 = H - offset, r = radius;
         java.awt.geom.GeneralPath p = new java.awt.geom.GeneralPath();
         p.moveTo(W + 50, y2); p.lineTo(x + r, y2);
@@ -1069,14 +1219,226 @@ class GameFramePanel extends JPanel {
         int baseOffset = 30, baseRadius = 90;
         int[] strokeW = {46, 36, 26};
         g2.setColor(INTERIOR); g2.fillRect(baseOffset + strokeW[0] / 2 + 8, 0, w - (baseOffset + strokeW[0] / 2 + 8), h - (baseOffset + strokeW[0] / 2 + 8));
+        java.awt.Rectangle rightClip = new java.awt.Rectangle(0, 0, w, h);
+        g2.setClip(rightClip);
         Color[] colors = {YELLOW, LIGHT_ORANGE, DARK_ORANGE};
         for (int i = 0; i < 3; i++) {
             java.awt.geom.GeneralPath path = halfFramePath(w, h, baseOffset + i * 14, Math.max(20, baseRadius - i * 10));
-            g2.setStroke(new BasicStroke(strokeW[i] + 6, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+            g2.setStroke(new BasicStroke(strokeW[i] + 6, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
             g2.setColor(Color.BLACK); g2.draw(path);
-            g2.setStroke(new BasicStroke(strokeW[i], BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+            g2.setStroke(new BasicStroke(strokeW[i], BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
             g2.setColor(colors[i]); g2.draw(path);
         }
         g2.dispose();
+    }
+}
+class HelpPage extends javax.swing.JFrame {
+    private final YahtzeeDesign gameRef;
+
+    public HelpPage(YahtzeeDesign gameRef) {
+        this.gameRef = gameRef;
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        buildUI();
+    }
+
+    private Font helpFont(float size) {
+        return new Font("Bauhaus 93", Font.BOLD, (int) size);
+    }
+
+    private void buildUI() {
+        javax.swing.JLayeredPane layered = new javax.swing.JLayeredPane();
+        layered.setLayout(null);
+        layered.setBackground(new Color(250, 235, 137));
+        layered.setOpaque(true);
+
+        GameFramePanel arch = new GameFramePanel();
+        arch.setOpaque(false);
+        layered.add(arch, Integer.valueOf(-1));
+
+        javax.swing.JButton homeBtn = new javax.swing.JButton() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                try {
+                    java.net.URL url = getClass().getResource("/img/homeIcon.png");
+                    if (url != null) {
+                        java.awt.image.BufferedImage img = ImageIO.read(url);
+                        g2.drawImage(img, 0, 0, getWidth(), getHeight(), null);
+                    } else {
+                        g2.setColor(new Color(180,20,20));
+                        g2.setFont(helpFont(22));
+                        g2.drawString("H", 4, getHeight()-6);
+                    }
+                } catch(Exception ex) {}
+                g2.dispose();
+            }
+        };
+        homeBtn.setOpaque(false); homeBtn.setContentAreaFilled(false);
+        homeBtn.setBorderPainted(false); homeBtn.setFocusPainted(false);
+        homeBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        homeBtn.addActionListener(e -> {
+            gameRef.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            gameRef.setVisible(true);
+            dispose();
+        });
+        layered.add(homeBtn, Integer.valueOf(5));
+
+        javax.swing.JLabel titleLbl = new OutlinedLabel("How to Play");
+        titleLbl.setFont(helpFont(52));
+        titleLbl.setForeground(new Color(180, 20, 20));
+        titleLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        layered.add(titleLbl, Integer.valueOf(2));
+
+        javax.swing.JLabel rulesLbl = new javax.swing.JLabel(
+            "<html>"
+            + "<b>Overview</b><br>"
+            + "&#8226; Each player takes turns rolling five dice up to <b>three times</b> per turn.<br>"
+            + "&#8226; After rolling, click dice to <b>hold</b> them before re-rolling the rest.<br>"
+            + "&#8226; After your rolls are used (or any time after the first roll), click a scorecard category to score it.<br>"
+            + "&#8226; The game ends when every player has filled all 13 categories.<br>"
+            + "<br>"
+            + "<b>Scoring Rules</b><br>"
+            + "&#8226; Each category can only be scored <b>once</b> per game.<br>"
+            + "&#8226; If your dice don't meet a category's criteria, you may still select it to take a <b>score of 0</b> — this is called taking a zero.<br>"
+            + "&#8226; Taking a zero is sometimes a smart strategy to protect higher-value categories for later.<br>"
+            + "&#8226; You <b>must</b> score a category after your third roll — you cannot roll again.<br>"
+            + "<br>"
+            + "<b>Upper Section Bonus</b><br>"
+            + "&#8226; If your total in the upper section (1's through 6's) reaches <b>63 or more</b>, you earn a <b>35-point bonus</b>.<br>"
+            + "&#8226; 63 points equals scoring exactly three of each face value — aim for that as a benchmark.<br>"
+            + "</html>");
+        rulesLbl.setFont(new Font("Bauhaus 93", Font.PLAIN, 14));
+        rulesLbl.setForeground(new Color(50, 25, 0));
+        rulesLbl.setVerticalAlignment(SwingConstants.TOP);
+        layered.add(rulesLbl, Integer.valueOf(2));
+
+        String[] cols = {"Category", "Criteria", "Score"};
+        String[][] rows = {
+            {"1's",              "No criteria",                                        "Sum of dice showing 1"},
+            {"2's",              "No criteria",                                        "Sum of dice showing 2"},
+            {"3's",              "No criteria",                                        "Sum of dice showing 3"},
+            {"4's",              "No criteria",                                        "Sum of dice showing 4"},
+            {"5's",              "No criteria",                                        "Sum of dice showing 5"},
+            {"6's",              "No criteria",                                        "Sum of dice showing 6"},
+            {"Three of a Kind",  "\u2265 3 dice the same face value",                 "Sum of all dice"},
+            {"Four of a Kind",   "\u2265 4 dice the same face value",                 "Sum of all dice"},
+            {"Full House",       "Three of one value + two of another",               "25 points"},
+            {"Small Straight",   "Four sequential dice (e.g. 1-2-3-4)",              "30 points"},
+            {"Large Straight",   "Five sequential dice (e.g. 1-2-3-4-5)",            "40 points"},
+            {"Even",             "All dice must be even",                              "Sum of all dice"},
+            {"Odd",              "All dice must be odd",                               "Sum of all dice"},
+            {"Yahtzee",          "All five dice show the same value",                  "50 points"},
+            {"Chance",           "Any combination",                                    "Sum of all dice"},
+        };
+
+        javax.swing.JTable tbl = new javax.swing.JTable(rows, cols) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+            @Override public java.awt.Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int col) {
+                java.awt.Component c = super.prepareRenderer(renderer, row, col);
+                    c.setBackground(new Color(255, 245, 195));
+                    c.setForeground(new Color(50, 20, 0));
+                return c;
+            }
+        };
+        tbl.setFont(new Font("Bauhaus 93", Font.PLAIN, 14));
+        tbl.setForeground(new Color(50, 20, 0));
+        tbl.setBackground(new Color(255, 248, 220));
+        tbl.setGridColor(new Color(200, 160, 60));
+        tbl.setRowHeight(26);
+        tbl.setShowGrid(true);
+        tbl.getTableHeader().setFont(helpFont(15));
+        tbl.getTableHeader().setBackground(new Color(180, 30, 30));
+        tbl.getTableHeader().setForeground(Color.WHITE);
+        tbl.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+
+        tbl.getColumnModel().getColumn(0).setPreferredWidth(120);
+        tbl.getColumnModel().getColumn(1).setPreferredWidth(220);
+        tbl.getColumnModel().getColumn(2).setPreferredWidth(140);
+
+        javax.swing.JScrollPane tblScroll = new javax.swing.JScrollPane(tbl);
+        tblScroll.setBorder(BorderFactory.createLineBorder(new Color(180, 140, 50), 2));
+        tblScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        tblScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        tblScroll.getViewport().setBackground(new Color(255, 248, 220));
+        layered.add(tblScroll, Integer.valueOf(2));
+
+        javax.swing.JLabel bonusNote = new javax.swing.JLabel(
+            "<html><i>\u2605 Upper Section Bonus: +35 points when 1's\u20136's total \u2265 63</i></html>");
+        bonusNote.setFont(new Font("Bauhaus 93", Font.ITALIC, 13));
+        bonusNote.setForeground(new Color(130, 60, 0));
+        layered.add(bonusNote, Integer.valueOf(2));
+
+        getContentPane().setLayout(new java.awt.BorderLayout());
+        getContentPane().add(layered, java.awt.BorderLayout.CENTER);
+
+        layered.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override public void componentResized(java.awt.event.ComponentEvent e) {
+                int W = layered.getWidth(), H = layered.getHeight();
+                arch.setBounds(0, 0, W, H);
+                int margin = Math.max(12, (int)(W * 0.012));
+                int iconSize = Math.max(36, (int)(W * 0.038));
+                homeBtn.setBounds(W - margin - iconSize, margin + 4, iconSize, iconSize);
+                int frameArm = Math.max(50, (int)(W * 0.065));
+                int frameBuffer = Math.max(20, (int)(W * 0.028));
+                int iL = frameArm + frameBuffer;
+                int iT = Math.max(16, (int)(H * 0.030));
+                int iW = W - iL - margin;
+                int titleH = Math.max(55, (int)(H * 0.10));
+                titleLbl.setBounds(iL, iT, iW, titleH);
+                int y = iT + titleH + 20; 
+                int remainH = H - y - margin;
+                int colGap = Math.max(16, (int)(W * 0.018));
+                int leftW  = (int)(iW * 0.42);
+                int rightW = iW - leftW - colGap;
+                rulesLbl.setBounds(iL, y, leftW, remainH);
+                int noteH = Math.max(22, (int)(H * 0.035));
+                int rowHeight = tbl.getRowHeight();
+                int headerH = tbl.getTableHeader().getPreferredSize().height;
+                int exactTblH = headerH + tbl.getRowCount() * rowHeight + 4; 
+                tblScroll.setBounds(iL + leftW + colGap, y, rightW, exactTblH);
+                bonusNote.setBounds(iL + leftW + colGap, y + exactTblH + 4, rightW, noteH);
+            }
+        });
+        pack();
+    }
+
+    @SuppressWarnings("unused")
+    private javax.swing.JPanel buildSectionPanel(String title, String[] cols, String[][] rows, String note) {
+        javax.swing.JPanel panel = new javax.swing.JPanel(new BorderLayout(0, 4));
+        panel.setOpaque(false);
+
+        javax.swing.JLabel hdr = new javax.swing.JLabel("\u25B6  " + title);
+        hdr.setFont(helpFont(22));
+        hdr.setForeground(new Color(180, 30, 30));
+        panel.add(hdr, BorderLayout.NORTH);
+
+        javax.swing.JTable tbl2 = new javax.swing.JTable(rows, cols) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tbl2.setFont(new Font("Bauhaus 93", Font.PLAIN, 15));
+        tbl2.setForeground(new Color(50, 20, 0));
+        tbl2.setBackground(new Color(255, 248, 210));
+        tbl2.setGridColor(new Color(200, 160, 60));
+        tbl2.setRowHeight(28);
+        tbl2.setShowGrid(true);
+        tbl2.getTableHeader().setFont(helpFont(15));
+        tbl2.getTableHeader().setBackground(new Color(210, 140, 30));
+        tbl2.getTableHeader().setForeground(Color.WHITE);
+        tbl2.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        javax.swing.JScrollPane sp = new javax.swing.JScrollPane(tbl2);
+        sp.setBorder(BorderFactory.createLineBorder(new Color(180, 140, 50), 1));
+        sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        sp.getViewport().setOpaque(false); sp.setOpaque(false);
+        panel.add(sp, BorderLayout.CENTER);
+
+        if (note != null) {
+            javax.swing.JLabel noteLbl = new javax.swing.JLabel("<html><i>" + note + "</i></html>");
+            noteLbl.setFont(new Font("Bauhaus 93", Font.ITALIC, 14));
+            noteLbl.setForeground(new Color(100, 60, 0));
+            panel.add(noteLbl, BorderLayout.SOUTH);
+        }
+        return panel;
     }
 }

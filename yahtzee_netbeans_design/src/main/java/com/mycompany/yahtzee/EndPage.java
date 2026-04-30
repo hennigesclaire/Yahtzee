@@ -26,7 +26,7 @@ public class EndPage extends javax.swing.JFrame {
     private JLabel leaderboardTitle;
     private JPanel leaderboardList;
     private RoundedButton playAgainButton;
-    private int rowSlotH; // set as % of height in layoutComponentsIn
+    private int rowSlotH; 
 
     public EndPage(TurnManager tm) {
         this.tm = tm;
