@@ -63,8 +63,7 @@ public class StartPageDesign extends javax.swing.JFrame {
         java.util.logging.Logger.getLogger(StartPageDesign.class.getName());
     private int playerCount = 1;
     private final int NAME_LEFT_MARGIN = 60;
-    private static boolean playing_music = false;
-    public static volatile Clip startPageMusicClip = null;
+
 
 public StartPageDesign() {   
     UIManager.put("Slider.foreground", new Color(230, 120, 40));
@@ -136,28 +135,9 @@ public StartPageDesign() {
     StartButton.setEnabled(false);
 
     layoutComponents();
-    initMusic();
 }
 
-private void initMusic() {
-    if (startPageMusicClip != null) {
-        startPageMusicClip.stop();
-        startPageMusicClip.close();
-        startPageMusicClip = null;
-    }
 
-    playing_music = true;
-    try {
-        AudioInputStream audioInput = AudioSystem.getAudioInputStream(
-            getClass().getResource("/sounds/background.wav"));
-        Clip clip = AudioSystem.getClip();
-        clip.open(audioInput);
-        startPageMusicClip = clip;
-        clip.loop(Clip.LOOP_CONTINUOUSLY);
-    } catch (Exception e) {
-        System.out.println(e);
-    }
-}
 
 private Font uiFont(float size) {
     return new Font("Bauhaus 93", Font.BOLD, (int)size);
@@ -755,17 +735,25 @@ private void layoutComponents() {
             boolean isAI = "AI".equals(row.getClientProperty("type"));
 
             if (isAI) {
-                Object ds  = row.getClientProperty("difficultySlider");
-                Object nl  = row.getClientProperty("nameLabel");
+                Object ds = row.getClientProperty("difficultySlider");
                 if (ds instanceof JSlider) {
-                    String aiName = (nl instanceof JLabel) ? ((JLabel) nl).getText() : ("AI Player " + idCounter);
+                    boolean isEasy = ((JSlider) ds).getValue() == 0;
+                    int pos = 0, total = 0;
+                    for (JPanel s : slots) {
+                        if (s == null || s.getComponentCount() == 0) continue;
+                        if (!"AI".equals(s.getClientProperty("type"))) continue;
+                        Object sds = s.getClientProperty("difficultySlider");
+                        if (!(sds instanceof JSlider)) continue;
+                        if ((((JSlider) sds).getValue() == 0) == isEasy) {
+                            total++;
+                            if (s == row) pos = total;
+                        }
+                    }
+                    String base = isEasy ? "Easy AI Player" : "Hard AI Player";
+                    String aiName = (total > 1) ? base + " " + pos : base;
                     AIPlayer ai = new AIPlayer(idCounter++);
                     ai.setUsername(aiName);
-                    if (((JSlider) ds).getValue() == 0) {
-                        ai.setStrategy(new EasyYahtzeeAI());
-                    } else {
-                        ai.setStrategy(new MediumYahtzeeAI());
-                    }
+                    ai.setStrategy(isEasy ? new EasyYahtzeeAI() : new MediumYahtzeeAI());
                     tm.addPlayer(ai);
                 }
             } else {

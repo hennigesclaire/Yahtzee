@@ -45,16 +45,16 @@ public class YahtzeeDesign extends javax.swing.JFrame {
 
     Dice[] dice = {new Dice(), new Dice(), new Dice(), new Dice(), new Dice()};
     private Font diceFont = null;
-    private void loadDiceFont() {
-        try {
-            InputStream is = YahtzeeDesign.class.getResourceAsStream("/fonts/yahtzee-dice.ttf");
-            if (is == null) throw new RuntimeException("Dice font not found");
-            diceFont = Font.createFont(Font.TRUETYPE_FONT, is);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            diceFont = new Font("Serif", Font.PLAIN, 36);
-        }
-    }
+//    private void loadDiceFont() {
+//        try {
+//            InputStream is = YahtzeeDesign.class.getResourceAsStream("/fonts/yahtzee-dice.ttf");
+//            if (is == null) throw new RuntimeException("Dice font not found");
+//            diceFont = Font.createFont(Font.TRUETYPE_FONT, is);
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//            diceFont = new Font("Serif", Font.PLAIN, 36);
+//        }
+//    }
     boolean[] holding = {false, false, false, false, false};
     private ScoreCard scoreCard;
     private ScoreCardTableModel upperModel;
@@ -73,7 +73,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private volatile Clip backgroundMusicClip = null;
     private javax.swing.JButton menuIconBtn;
     private javax.swing.JPanel menuDropdown;
-    private javax.swing.JButton soundBtn, musicBtn, helpBtn, aiSpeedBtn;
+    private javax.swing.JButton soundBtn, musicBtn, helpBtn, aiSpeedBtn, exitBtn;
     private boolean menuOpen = false;
     private volatile boolean aiSpeedUp = false;
     private java.util.Map<Integer, Integer> previousRanks = new java.util.HashMap<>();
@@ -123,21 +123,21 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     public YahtzeeDesign(TurnManager t) {
         this.t = t;
         t.resetRolls();
-        loadDiceFont();
+//        loadDiceFont();
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         buildComponents();
         wireScoreCard();
         animateLeaderboard(() -> {}); 
         checkAndPlayAITurn();
-        Clip spClip = StartPageDesign.startPageMusicClip;
-        StartPageDesign.startPageMusicClip = null;
-        if (spClip != null) {
-            backgroundMusicClip = spClip;
-            startMusicLoopThread(spClip);
-        } else {
-            startBackgroundMusic();
-        }
+//        Clip spClip = StartPageDesign.startPageMusicClip;
+//        StartPageDesign.startPageMusicClip = null;
+//        if (spClip != null) {
+//            backgroundMusicClip = spClip;
+//            startMusicLoopThread(spClip);
+//        } else {
+            new Thread(this::startBackgroundMusic).start();
+//        }
         jLayeredPane1.addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override public void componentResized(java.awt.event.ComponentEvent e) { layoutComponents(); }
         });
@@ -333,13 +333,23 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             aiSpeedUp = !aiSpeedUp;
             updateMenuIcons();
         });
+        exitBtn = makeMenuIconButton("/img/exitIcon.png");
+        exitBtn.addActionListener(e -> {
+            menuDropdown.setVisible(false); menuOpen = false;
+            stopBackgroundMusic();
+            StartPageDesign sp = new StartPageDesign();
+            sp.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            sp.setVisible(true);
+            this.setVisible(false);
+            dispose();
+        });
         helpBtn = makeMenuIconButton("/img/helpIcon.png");
         helpBtn.addActionListener(e -> {
             menuDropdown.setVisible(false); menuOpen = false;
             openHelpPage();
         });
 
-        menuDropdown.add(musicBtn); menuDropdown.add(soundBtn); menuDropdown.add(aiSpeedBtn); menuDropdown.add(helpBtn);
+        menuDropdown.add(musicBtn); menuDropdown.add(soundBtn); menuDropdown.add(aiSpeedBtn);menuDropdown.add(exitBtn); menuDropdown.add(helpBtn);
         jLayeredPane1.add(menuDropdown, Integer.valueOf(11));
 
         jLayeredPane1.addMouseListener(new MouseAdapter() {
@@ -488,16 +498,22 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         int dropBtnSize = Math.max(34, (int)(W * 0.034));
         int dropPad = 8;
         int dropW = dropBtnSize + dropPad * 2;
-        int dropH = dropBtnSize * 4 + dropPad * 5;
-        int dropX = menuIconX + menuIconSize - dropW;
         int dropY = menuIconY + menuIconSize + 4;
+        int diceBottomBuffer2 = Math.max(16, (int)(H * 0.030)) + 50;
+        int diceStripH2 = (int)(((H - Math.max(16, (int)(H * 0.030))) - iT) * 0.20);
+        int diceStripY2 = H - diceBottomBuffer2 - diceStripH2;
+        int contentH2 = diceStripY2 - iT - 10;
+        int dropH = (iT + contentH2) - dropY;
+        int dropX = menuIconX + menuIconSize - dropW;
         int alignedIconX = dropX + (dropW - menuIconSize) / 2;
         menuIconBtn.setBounds(alignedIconX, menuIconY, menuIconSize, menuIconSize);
         menuDropdown.setBounds(dropX, dropY, dropW, dropH);
-        musicBtn.setBounds(dropPad, dropPad, dropBtnSize, dropBtnSize);
-        soundBtn.setBounds(dropPad, dropPad * 2 + dropBtnSize, dropBtnSize, dropBtnSize);
-        aiSpeedBtn.setBounds(dropPad, dropPad * 3 + dropBtnSize * 2, dropBtnSize, dropBtnSize);
-        helpBtn.setBounds(dropPad, dropPad * 4 + dropBtnSize * 3, dropBtnSize, dropBtnSize);
+        int numBtns = 5;
+        int spacing = Math.max(4, (dropH - numBtns * dropBtnSize) / (numBtns + 1));
+        javax.swing.JButton[] dropBtns = {musicBtn, soundBtn, aiSpeedBtn, exitBtn, helpBtn};
+        for (int i = 0; i < numBtns; i++) {
+            dropBtns[i].setBounds(dropPad, spacing + i * (dropBtnSize + spacing), dropBtnSize, dropBtnSize);
+        }
 
         int iR = menuIconX - menuMargin;
         int iW = iR - iL, iH = (H - smallBorder) - iT;
@@ -832,7 +848,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 animateLeaderboard(() -> {
 
                     if (t.completeGame()) {
-                        StartPageDesign.startPageMusicClip = backgroundMusicClip;
+//                        StartPageDesign.startPageMusicClip = backgroundMusicClip;
                         backgroundMusicClip = null;
                         EndPage ep = new EndPage(t);
                         ep.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -1079,13 +1095,14 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         if (!turnActive && t.getRolls() > 0) turnActive = true;
         if (!turnActive) return;
+        boolean aiSpeedRoll = aiSpeedUp && (t.getCurrentPlayer() instanceof AIPlayer);
         DiceComponent[] j = {die1, die2, die3, die4, die5};
         for (int i = 0; i < dice.length; i++) {
             if (!holding[i]) {
                 dice[i].roll();
                 t.updateInterface(dice);
                 j[i].setValue(t.getDiceFromInterface()[i]);
-                spinDie(j[i]);
+                if (!aiSpeedRoll) spinDie(j[i]);
             }
             currentRoll = Arrays.copyOf(dice, dice.length);
             Map<Category, Integer> possibleScores = scoreCard.calculatePossibleScores(dice);
@@ -1099,31 +1116,23 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             die1.setEnabled(true); die2.setEnabled(true); die3.setEnabled(true);
             die4.setEnabled(true); die5.setEnabled(true);
         }
-        try
-        {
-            if (soundEffectsOn) {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/DiceRoll.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
+        if (soundEffectsOn) {
+            if (aiSpeedRoll) {
+                playSoundEffect("/sounds/DiceRoll.wav");
+            } else {
+                try {
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/DiceRoll.wav"));
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioInput);
+                    clip.start();
+                } catch (Exception e) { System.out.println(e); }
+                try {
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioInput);
+                    clip.start();
+                } catch (Exception ex) { System.out.println(ex); }
             }
-        }
-        catch (Exception e)
-        {
-            System.out.println(e);
-        }
-        try
-        {
-            if (soundEffectsOn) {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-            }
-        }
-        catch (Exception ex)
-        {
-            System.out.println(ex);
         }
     }
 

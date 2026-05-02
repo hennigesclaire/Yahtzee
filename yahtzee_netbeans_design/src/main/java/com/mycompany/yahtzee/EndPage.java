@@ -26,6 +26,7 @@ public class EndPage extends javax.swing.JFrame {
     private JLabel leaderboardTitle;
     private JPanel leaderboardList;
     private RoundedButton playAgainButton;
+    private RoundedButton viewStatsButton;
     private int rowSlotH; 
 
     public EndPage(TurnManager tm) {
@@ -107,6 +108,11 @@ public class EndPage extends javax.swing.JFrame {
             dispose();
         });
         contentPanel.add(playAgainButton);
+
+        viewStatsButton = new RoundedButton("View Stats");
+        viewStatsButton.setFont(uiFont(28f));
+        viewStatsButton.addActionListener(e -> showStatsDialog());
+        contentPanel.add(viewStatsButton);
 
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(layeredPane, BorderLayout.CENTER);
@@ -210,10 +216,10 @@ public class EndPage extends javax.swing.JFrame {
             }
         }
         int lbTitleGap = (int)(H * 0.008);
-        int lbH      = lbTitleH + 6 * rowSlotH + lbPad * 3 + lbTitleGap;
-        int lbW      = Math.min(innerW, (int)(W * 0.52));
-        int lbX      = (W - lbW) / 2;
-        int lbY      = wnY + wnH + (int)(H * 0.025);
+        int lbH  = lbTitleH + 6 * rowSlotH + lbPad * 3 + lbTitleGap;
+        int lbW = Math.min(innerW, (int)(W * 0.52));
+        int lbX = (W - lbW) / 2;
+        int lbY = wnY + wnH + (int)(H * 0.012);
         leaderboardPanel.setBounds(lbX, lbY, lbW, lbH);
         leaderboardTitle.setFont(uiFont(Math.max((int)(H * 0.018f), (int)(lbTitleH * 0.65f))));
         leaderboardTitle.setBounds(lbPad, lbPad, lbW - lbPad * 2, lbTitleH);
@@ -221,9 +227,194 @@ public class EndPage extends javax.swing.JFrame {
 
         int btnH = Math.max((int)(H * 0.055), (int)(H * 0.07));
         int btnW = Math.max((int)(W * 0.14), (int)(W * 0.20));
-        int btnY = lbY + lbH + (int)(H * 0.035);
-        playAgainButton.setBounds((W - btnW) / 2, btnY, btnW, btnH);
+        int btnY = lbY + lbH + (int)(H * 0.018);
+        int gap  = (int)(W * 0.025);
+        int totalBtnW = btnW * 2 + gap;
+        int btnStartX = (W - totalBtnW) / 2;
+        // View Stats on the left, Play Again on the right
+        viewStatsButton.setBounds(btnStartX, btnY, btnW, btnH);
+        viewStatsButton.setFont(uiFont(Math.max((int)(H * 0.020f), (int)(btnH * 0.40f))));
+        playAgainButton.setBounds(btnStartX + btnW + gap, btnY, btnW, btnH);
         playAgainButton.setFont(uiFont(Math.max((int)(H * 0.020f), (int)(btnH * 0.40f))));
+
+        lp.revalidate();
+        lp.repaint();
+    }
+
+
+    private void showStatsDialog() {
+        if (tm == null) return;
+
+        List<Player>    players = tm.getPlayers();
+        List<ScoreCard> cards   = tm.getScoreCards();
+
+        java.util.List<Integer> humanScores  = new java.util.ArrayList<>();
+        java.util.List<Integer> easyAiScores = new java.util.ArrayList<>();
+        java.util.List<Integer> hardAiScores = new java.util.ArrayList<>();
+
+        for (int i = 0; i < players.size(); i++) {
+            Player p  = players.get(i);
+            int score = cards.get(i).getTotalScore();
+            if (p instanceof AIPlayer) {
+                AIPlayer ai = (AIPlayer) p;
+                if (ai.getStrategy() instanceof EasyYahtzeeAI) {
+                    easyAiScores.add(score);
+                } else {
+                    hardAiScores.add(score);
+                }
+            } else {
+                humanScores.add(score);
+            }
+        }
+
+        JLayeredPane lp = (JLayeredPane) getContentPane().getComponent(0);
+        int LW = lp.getWidth();
+        int LH = lp.getHeight();
+
+        JPanel dimmer = new JPanel(null) {
+            @Override protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 140));
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        dimmer.setOpaque(false);
+        dimmer.setBounds(0, 0, LW, LH);
+        lp.add(dimmer, Integer.valueOf(10));
+
+        int cardW = Math.min(600, (int)(LW * 0.62));
+        int cardH = (int)(LH * 0.58);
+        int cardX = (LW - cardW) / 2;
+        int cardY = (LH - cardH) / 2;
+
+        JPanel card = new JPanel(null) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(250, 235, 137));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 28, 28);
+                g2.setColor(new Color(200, 120, 30, 220));
+                g2.setStroke(new java.awt.BasicStroke(3));
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 28, 28);
+                g2.dispose();
+            }
+        };
+        card.setOpaque(false);
+        card.setBounds(cardX, cardY, cardW, cardH);
+        lp.add(card, Integer.valueOf(11));
+
+        OutlinedLabel statsTitle = new OutlinedLabel("Player Stats");
+        int titleFontSize = Math.max(24, (int)(cardH * 0.10f));
+        statsTitle.setFont(uiFont(titleFontSize));
+        statsTitle.setForeground(new Color(180, 20, 20));
+        statsTitle.setHorizontalAlignment(SwingConstants.CENTER);
+        int titleH = (int)(cardH * 0.16);
+        statsTitle.setBounds(0, (int)(cardH * 0.04), cardW, titleH);
+        card.add(statsTitle);
+
+        int pad = (int)(cardW * 0.03);
+        int labelW   = (int)(cardW * 0.20);
+        int dataAreaX = pad + labelW;
+        int dataAreaW = cardW - dataAreaX - pad;
+        int colCount  = 5;
+        int colW  = dataAreaW / colCount;
+
+        String[] cols = { "Min", "Max", "Median", "Average", "Range" };
+        int headerY   = (int)(cardH * 0.28);
+        int headerH   = (int)(cardH * 0.07);
+        int headerFont = Math.max(11, (int)(cardH * 0.048f));
+        for (int ci = 0; ci < cols.length; ci++) {
+            JLabel lbl = new JLabel(cols[ci]);
+            lbl.setFont(uiFont(headerFont));
+            lbl.setForeground(new Color(100, 50, 0));
+            lbl.setHorizontalAlignment(SwingConstants.CENTER);
+            lbl.setBounds(dataAreaX + ci * colW, headerY, colW, headerH);
+            card.add(lbl);
+        }
+
+        String[][] rowDefs = {
+            { "Human",   "No human players" },
+            { "Easy AI", "No Easy AI players" },
+            { "Hard AI", "No Hard AI players" }
+        };
+        @SuppressWarnings("unchecked")
+        java.util.List<Integer>[] buckets = new java.util.List[]{ humanScores, easyAiScores, hardAiScores };
+
+        int rowsTop  = headerY + headerH + (int)(cardH * 0.01);
+        int rowsArea = (int)(cardH * 0.44);
+        int rowH     = rowsArea / 3;
+        int rowFont  = Math.max(11, (int)(cardH * 0.048f));
+        int valFont  = Math.max(11, (int)(cardH * 0.046f));
+
+        for (int ri = 0; ri < 3; ri++) {
+            java.util.List<Integer> bucket = buckets[ri];
+            int ry = rowsTop + ri * rowH;
+
+            GlassPanel rowCard = new GlassPanel();
+            rowCard.setLayout(null);
+            rowCard.setBounds(pad, ry, cardW - pad * 2, rowH - 4);
+            card.add(rowCard);
+
+            int rcH = rowH - 4;
+
+            JLabel typeLabel = new JLabel(rowDefs[ri][0]);
+            typeLabel.setFont(uiFont(rowFont));
+            typeLabel.setForeground(new Color(180, 20, 20));
+            typeLabel.setBounds(8, rcH / 2 - rowFont / 2 - 2, labelW, rowFont + 4);
+            rowCard.add(typeLabel);
+
+            if (bucket.isEmpty()) {
+                JLabel none = new JLabel(rowDefs[ri][1]);
+                none.setFont(uiFont(Math.max(10, rowFont - 2)));
+                none.setForeground(new Color(120, 80, 30));
+                none.setBounds(labelW + 8, rcH / 2 - rowFont / 2 - 2, cardW - labelW - pad * 3, rowFont + 4);
+                rowCard.add(none);
+            } else {
+                java.util.Collections.sort(bucket);
+                int min   = bucket.get(0);
+                int max   = bucket.get(bucket.size() - 1);
+                int range = max - min;
+                double avg = bucket.stream().mapToInt(Integer::intValue).average().orElse(0);
+                double med;
+                int n = bucket.size();
+                if (n % 2 == 1) {
+                    med = bucket.get(n / 2);
+                } else {
+                    med = (bucket.get(n / 2 - 1) + bucket.get(n / 2)) / 2.0;
+                }
+                String[] vals = {
+                    String.valueOf(min),
+                    String.valueOf(max),
+                    (med == (int) med) ? String.valueOf((int) med) : String.format("%.1f", med),
+                    String.format("%.1f", avg),
+                    String.valueOf(range)
+                };
+                int innerDataX = dataAreaX - pad;
+                for (int ci = 0; ci < cols.length; ci++) {
+                    JLabel v = new JLabel(vals[ci]);
+                    v.setFont(uiFont(valFont));
+                    v.setForeground(Color.BLACK);
+                    v.setHorizontalAlignment(SwingConstants.CENTER);
+                    v.setBounds(innerDataX + ci * colW, rcH / 2 - valFont / 2 - 2, colW, valFont + 4);
+                    rowCard.add(v);
+                }
+            }
+        }
+
+        RoundedButton closeBtn = new RoundedButton("Close");
+        int closeFontSize = Math.max(14, (int)(cardH * 0.055f));
+        int closeBtnW = (int)(cardW * 0.32);
+        int closeBtnH = (int)(cardH * 0.10);
+        int closeBtnX = (cardW - closeBtnW) / 2;
+        int closeBtnY = (int)(cardH * 0.87);
+        closeBtn.setFont(uiFont(closeFontSize));
+        closeBtn.setBounds(closeBtnX, closeBtnY, closeBtnW, closeBtnH);
+        closeBtn.addActionListener(e -> {
+            lp.remove(card);
+            lp.remove(dimmer);
+            lp.revalidate();
+            lp.repaint();
+        });
+        card.add(closeBtn);
 
         lp.revalidate();
         lp.repaint();
