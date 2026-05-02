@@ -139,27 +139,6 @@ public StartPageDesign() {
     StartButton.setEnabled(false);
 
     layoutComponents();
-    initMusic();
-}
-
-private void initMusic() {
-    if (startPageMusicClip != null) {
-        startPageMusicClip.stop();
-        startPageMusicClip.close();
-        startPageMusicClip = null;
-    }
-
-    playing_music = true;
-    try {
-        AudioInputStream audioInput = AudioSystem.getAudioInputStream(
-            getClass().getResource("/sounds/background.wav"));
-        Clip clip = AudioSystem.getClip();
-        clip.open(audioInput);
-        startPageMusicClip = clip;
-        clip.loop(Clip.LOOP_CONTINUOUSLY);
-    } catch (Exception e) {
-        System.out.println(e);
-    }
 }
 
 private Font uiFont(float size) {
