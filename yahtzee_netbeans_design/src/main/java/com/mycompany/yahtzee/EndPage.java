@@ -217,9 +217,9 @@ public class EndPage extends javax.swing.JFrame {
         }
         int lbTitleGap = (int)(H * 0.008);
         int lbH  = lbTitleH + 6 * rowSlotH + lbPad * 3 + lbTitleGap;
-        int lbW = Math.min(innerW, (int)(W * 0.52));
-        int lbX = (W - lbW) / 2;
-        int lbY = wnY + wnH + (int)(H * 0.012);
+        int lbW  = Math.min(innerW, (int)(W * 0.52));
+        int lbX  = (W - lbW) / 2;
+        int lbY  = wnY + wnH + (int)(H * 0.012);
         leaderboardPanel.setBounds(lbX, lbY, lbW, lbH);
         leaderboardTitle.setFont(uiFont(Math.max((int)(H * 0.018f), (int)(lbTitleH * 0.65f))));
         leaderboardTitle.setBounds(lbPad, lbPad, lbW - lbPad * 2, lbTitleH);
@@ -231,7 +231,6 @@ public class EndPage extends javax.swing.JFrame {
         int gap  = (int)(W * 0.025);
         int totalBtnW = btnW * 2 + gap;
         int btnStartX = (W - totalBtnW) / 2;
-        // View Stats on the left, Play Again on the right
         viewStatsButton.setBounds(btnStartX, btnY, btnW, btnH);
         viewStatsButton.setFont(uiFont(Math.max((int)(H * 0.020f), (int)(btnH * 0.40f))));
         playAgainButton.setBounds(btnStartX + btnW + gap, btnY, btnW, btnH);
@@ -240,7 +239,6 @@ public class EndPage extends javax.swing.JFrame {
         lp.revalidate();
         lp.repaint();
     }
-
 
     private void showStatsDialog() {
         if (tm == null) return;
@@ -318,7 +316,7 @@ public class EndPage extends javax.swing.JFrame {
         int colCount  = 5;
         int colW  = dataAreaW / colCount;
 
-        String[] cols = { "Min", "Max", "Median", "Average", "Range" };
+        String[] cols = { "Min", "Max", "Med", "Avg", "Range" };
         int headerY   = (int)(cardH * 0.28);
         int headerH   = (int)(cardH * 0.07);
         int headerFont = Math.max(11, (int)(cardH * 0.048f));

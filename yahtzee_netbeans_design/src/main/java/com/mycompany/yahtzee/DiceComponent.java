@@ -39,7 +39,6 @@ public class DiceComponent extends JButton {
         int w = getWidth();
         int h = getHeight();
 
-        // Orange glow border when held
         if (held) {
             g2.setColor(new Color(255, 140, 0, 80));
             g2.fillRoundRect(-4, -4, w + 8, h + 8, 26, 26);
@@ -48,7 +47,6 @@ public class DiceComponent extends JButton {
             g2.drawRoundRect(-3, -3, w + 6, h + 6, 24, 24);
         }
 
-        // Apply horizontal squish for spin animation
         g2.translate(w / 2.0, h / 2.0);
         g2.scale(spinPhase, 1.0);
         g2.translate(-w / 2.0, -h / 2.0);
