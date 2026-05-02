@@ -31,7 +31,9 @@ public class EndPage extends javax.swing.JFrame {
     public EndPage(TurnManager tm) {
         this.tm = tm;
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        setSize(screen.width, screen.height);
+        setLocationRelativeTo(null);
         buildUI();
 
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -101,7 +103,9 @@ public class EndPage extends javax.swing.JFrame {
         playAgainButton.setFont(uiFont(28f));
         playAgainButton.addActionListener(e -> {
             StartPageDesign sp = new StartPageDesign();
-            sp.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+            setSize(screen.width, screen.height);
+            setLocationRelativeTo(null);
             sp.setVisible(true);
             this.setVisible(false);
             dispose();

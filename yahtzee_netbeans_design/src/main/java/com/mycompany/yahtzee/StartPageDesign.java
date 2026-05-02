@@ -19,6 +19,7 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Toolkit;
 
 
 import javax.swing.BorderFactory;
@@ -70,7 +71,9 @@ public StartPageDesign() {
     UIManager.put("Slider.foreground", new Color(230, 120, 40));
     UIManager.put("Slider.thumb", new Color(230, 120, 40));
     this.tm = new TurnManager();                         
-    setExtendedState(JFrame.MAXIMIZED_BOTH);
+    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+    setSize(screen.width, screen.height);
+    setLocationRelativeTo(null);
     initComponents();
     initSlots();
     jPanel2.setLayout(null);
@@ -789,7 +792,9 @@ private void layoutComponents() {
         }
         YahtzeeDesign y = new YahtzeeDesign(tm);
         y.setVisible(true);
-        y.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        setSize(screen.width, screen.height);
+        setLocationRelativeTo(null);
         this.setVisible(false);
     }                                           
 

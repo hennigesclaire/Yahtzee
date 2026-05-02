@@ -39,8 +39,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.imageio.ImageIO;
-
-
+import java.awt.Toolkit;
 public class YahtzeeDesign extends javax.swing.JFrame {
 
     Dice[] dice = {new Dice(), new Dice(), new Dice(), new Dice(), new Dice()};
@@ -125,7 +124,9 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         t.resetRolls();
         loadDiceFont();
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        setSize(screen.width, screen.height);
+        setLocationRelativeTo(null);
         buildComponents();
         wireScoreCard();
         animateLeaderboard(() -> {}); 
@@ -455,7 +456,9 @@ public class YahtzeeDesign extends javax.swing.JFrame {
 
     private void openHelpPage() {
         HelpPage hp = new HelpPage(this);
-        hp.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        setSize(screen.width, screen.height);
+        setLocationRelativeTo(null);
         hp.setVisible(true);
         this.setVisible(false);
     }
@@ -835,7 +838,9 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                         StartPageDesign.startPageMusicClip = backgroundMusicClip;
                         backgroundMusicClip = null;
                         EndPage ep = new EndPage(t);
-                        ep.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+                        setSize(screen.width, screen.height);
+                        setLocationRelativeTo(null);
                         ep.setVisible(true);
                         dispose();
                     }else {
@@ -1240,7 +1245,9 @@ class HelpPage extends javax.swing.JFrame {
     public HelpPage(YahtzeeDesign gameRef) {
         this.gameRef = gameRef;
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        setSize(screen.width, screen.height);
+        setLocationRelativeTo(null);
         buildUI();
     }
 
@@ -1280,7 +1287,9 @@ class HelpPage extends javax.swing.JFrame {
         homeBtn.setBorderPainted(false); homeBtn.setFocusPainted(false);
         homeBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
         homeBtn.addActionListener(e -> {
-            gameRef.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+            setSize(screen.width, screen.height);
+            setLocationRelativeTo(null);
             gameRef.setVisible(true);
             dispose();
         });
