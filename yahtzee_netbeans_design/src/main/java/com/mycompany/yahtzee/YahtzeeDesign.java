@@ -191,12 +191,12 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         jPanel2 = new GlassPanel() {
             float flipPhase = 1.0f;
             public void setPanelFlipPhase(float p) { flipPhase = p; repaint(); }
-            @Override public void paint(java.awt.Graphics g) {
-                if (flipPhase >= 1.0f) { super.paint(g); return; }
+            @Override public void paintComponent(java.awt.Graphics g) {
+                if (flipPhase >= 1.0f) { super.paintComponent(g); return; }
                 java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
                 int cx = getWidth() / 2, cy = getHeight() / 2;
                 g2.translate(cx, cy); g2.scale(flipPhase, 1.0); g2.translate(-cx, -cy);
-                super.paint(g2); g2.dispose();
+                super.paintComponent(g2); g2.dispose();
             }
         };
         panelFlipper = p -> {};
