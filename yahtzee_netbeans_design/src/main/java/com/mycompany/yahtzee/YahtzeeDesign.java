@@ -67,6 +67,8 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private Category pendingCategory = null;
     private TurnManager t = null;
     private java.util.function.Consumer<Float> panelFlipper = p -> {};
+    private volatile boolean aiCancelled = false;
+private volatile int aiGeneration = 0; 
     private boolean soundEffectsOn = true;
     private volatile boolean musicOn = true;
     private volatile Clip backgroundMusicClip = null;
@@ -338,6 +340,10 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         exitBtn.addActionListener(e -> {
             menuDropdown.setVisible(false); menuOpen = false;
             stopBackgroundMusic();
+
+            aiCancelled = true;  
+            aiGeneration++; 
+
             StartPageDesign sp = new StartPageDesign();
             sp.setExtendedState(JFrame.MAXIMIZED_BOTH);
             sp.setVisible(true);
@@ -800,39 +806,76 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         die4.setHeld(holding[3]); die5.setHeld(holding[4]);
     }
 
-    private void checkAndPlayAITurn() {
-        Player current = t.getCurrentPlayer();
-        summaryPlayerName.setText("Turn: " + current.getUsername());
-        if (current instanceof AIPlayer) {
-            AIPlayer ai = (AIPlayer) current;
-            jButton1.setEnabled(false);
-            die1.setEnabled(false); die2.setEnabled(false); die3.setEnabled(false);
-            die4.setEnabled(false); die5.setEnabled(false);
-            new Thread(() -> {
-                try {
-                    YahtzeeAI brain = ai.getStrategy();
-                    Thread.sleep(aiSpeedUp ? 100 : 1000);
-                    java.awt.EventQueue.invokeAndWait(this::performManualRoll);
-                    while (t.getRolls() > 0) {
-                        Thread.sleep(aiSpeedUp ? 150 : 1500);
-                        int rollsRemaining = t.getRolls();
-                        java.util.Set<Integer> toKeep = brain.chooseDiceToKeep(dice, scoreCard, rollsRemaining);
-                        if (toKeep.size() == 5) break;
-                        for (int j = 0; j < 5; j++) holding[j] = toKeep.contains(j);
-                        java.awt.EventQueue.invokeAndWait(() -> { updateHoldLabels(); performManualRoll(); });
-                    }
-                    Thread.sleep(aiSpeedUp ? 150 : 1500);
-                    int[] currentVals = t.getDiceFromInterface();
-                    Category choice = brain.chooseCategory(currentVals, scoreCard);
-                    java.awt.EventQueue.invokeLater(() -> finalizeCategorySelection(choice));
-                    playSoundEffect("/sounds/Click.wav");
-                } catch (Exception ex) { ex.printStackTrace(); }
-            }).start();
-        } else {
-            jButton1.setEnabled(true); turnActive = true;
-        }
-    }
+   private void checkAndPlayAITurn() {
+    if (aiCancelled) return; 
 
+    Player current = t.getCurrentPlayer();
+    summaryPlayerName.setText("Turn: " + current.getUsername());
+    if (current instanceof AIPlayer) {
+        AIPlayer ai = (AIPlayer) current;
+        jButton1.setEnabled(false);
+        die1.setEnabled(false); die2.setEnabled(false); die3.setEnabled(false);
+        die4.setEnabled(false); die5.setEnabled(false);
+
+        final int myGen = ++aiGeneration;
+
+        Thread thread = new Thread(() -> {
+            try {
+                YahtzeeAI brain = ai.getStrategy();
+                if (aiCancelled || aiGeneration != myGen) return;
+                Thread.sleep(aiSpeedUp ? 100 : 1000);
+
+                if (aiCancelled || aiGeneration != myGen) return;
+                java.awt.EventQueue.invokeLater(() -> {
+                    if (aiCancelled || aiGeneration != myGen) return;
+                    performManualRoll();
+                });
+                Thread.sleep(aiSpeedUp ? 100 : 500);
+
+                while (this.t.getRolls() > 0) {
+                    if (aiCancelled || aiGeneration != myGen) return;
+                    Thread.sleep(aiSpeedUp ? 150 : 1500);
+                    if (aiCancelled || aiGeneration != myGen) return;
+
+                    int rollsRemaining = this.t.getRolls();
+                    java.util.Set<Integer> toKeep = brain.chooseDiceToKeep(dice, scoreCard, rollsRemaining);
+                    if (toKeep.size() == 5) break;
+                    for (int j = 0; j < 5; j++) holding[j] = toKeep.contains(j);
+
+                    if (aiCancelled || aiGeneration != myGen) return;
+                    java.awt.EventQueue.invokeLater(() -> {
+                        if (aiCancelled || aiGeneration != myGen) return;
+                        updateHoldLabels();
+                        performManualRoll();
+                    });
+                    Thread.sleep(aiSpeedUp ? 100 : 500);
+                }
+
+                if (aiCancelled || aiGeneration != myGen) return;
+                Thread.sleep(aiSpeedUp ? 150 : 1500);
+                if (aiCancelled || aiGeneration != myGen) return;
+
+                int[] currentVals = this.t.getDiceFromInterface();
+                Category choice = brain.chooseCategory(currentVals, scoreCard);
+
+                if (aiCancelled || aiGeneration != myGen) return;
+                java.awt.EventQueue.invokeLater(() -> {
+                    if (aiCancelled || aiGeneration != myGen) return;
+                    finalizeCategorySelection(choice);
+                });
+                playSoundEffect("/sounds/Click.wav");
+
+            } catch (InterruptedException ex) {
+            } catch (Exception ex) {
+                if (!aiCancelled) ex.printStackTrace();
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+    } else {
+        jButton1.setEnabled(true); turnActive = true;
+    }
+}
     private void finalizeCategorySelection(Category selectedCategory) {
         if (selectedCategory == Category.UPPER_SCORE || selectedCategory == Category.BONUS
                 || selectedCategory == Category.LOWER_SCORE || selectedCategory == Category.TOTAL) {
