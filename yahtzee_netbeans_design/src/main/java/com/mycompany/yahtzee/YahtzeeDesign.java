@@ -44,12 +44,16 @@ public class YahtzeeDesign extends javax.swing.JFrame {
 
     Dice[] dice = {new Dice(), new Dice(), new Dice(), new Dice(), new Dice()};
     private Font diceFont = null;
-            diceFont = Font.createFont(Font.TRUETYPE_FONT, is);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            diceFont = new Font("Serif", Font.PLAIN, 36);
-        }
-    }
+//    private void loadDiceFont() {
+//        try {
+//            InputStream is = YahtzeeDesign.class.getResourceAsStream("/fonts/yahtzee-dice.ttf");
+//            if (is == null) throw new RuntimeException("Dice font not found");
+//            diceFont = Font.createFont(Font.TRUETYPE_FONT, is);
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//            diceFont = new Font("Serif", Font.PLAIN, 36);
+//        }
+//    }
     boolean[] holding = {false, false, false, false, false};
     private ScoreCard scoreCard;
     private ScoreCardTableModel upperModel;
