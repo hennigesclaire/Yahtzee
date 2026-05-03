@@ -619,16 +619,20 @@ private void layoutComponents() {
         PlayerButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 PlayerButtonActionPerformed(evt);
-                try
-                {
-                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-                    Clip clip = AudioSystem.getClip();
-                    clip.open(audioInput);
-                    clip.start();
-                }
-                catch (Exception e)
-                {
-                    System.out.println(e);
+                try {
+                    if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                        System.out.println("PLAY_Click");
+                    } else {
+                        // Running as normal Java app → use Java Sound API
+                        AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                            getClass().getResource("/sounds/Click.wav"));
+
+                        Clip clip = AudioSystem.getClip();
+                        clip.open(audioInput);
+                        clip.start();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -758,16 +762,20 @@ private void layoutComponents() {
                 }
             }
         }
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception e)
-        {
-            System.out.println(e);
+        try {
+            if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                System.out.println("PLAY_Click");
+            } else {
+                // Running as normal Java app → use Java Sound API
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                    getClass().getResource("/sounds/Click.wav"));
+
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         YahtzeeDesign y = new YahtzeeDesign(tm);
         y.setVisible(true);
@@ -785,16 +793,20 @@ private void layoutComponents() {
         updateButtonState();
         refreshAILabels();
         SwingUtilities.invokeLater(() -> layoutComponents());
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception e)
-        {
-            System.out.println(e);
+        try {
+            if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                System.out.println("PLAY_Click");
+            } else {
+                // Running as normal Java app → use Java Sound API
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                    getClass().getResource("/sounds/Click.wav"));
+
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }                                               
 
@@ -806,16 +818,20 @@ private void layoutComponents() {
         updateButtonState();
         refreshHumanLabels();
         SwingUtilities.invokeLater(() -> layoutComponents());
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception e)
-        {
-            System.out.println(e);
+        try {
+            if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                System.out.println("PLAY_Click");
+            } else {
+                // Running as normal Java app → use Java Sound API
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                    getClass().getResource("/sounds/Click.wav"));
+
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }                                            
 

@@ -417,14 +417,18 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         if (!musicOn) return;
         if (backgroundMusicClip != null) return;
         try {
-            java.net.URL musicUrl = getClass().getResource("/sounds/background.wav");
-            if (musicUrl == null) { System.out.println("background.wav not found"); return; }
-            AudioInputStream ais = AudioSystem.getAudioInputStream(musicUrl);
-            Clip clip = AudioSystem.getClip();
-            clip.open(ais);
-            backgroundMusicClip = clip;
-            clip.start();
-            startMusicLoopThread(clip);
+            if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                System.out.println("PLAY_background");
+            } else {
+                java.net.URL musicUrl = getClass().getResource("/sounds/background.wav");
+                if (musicUrl == null) { System.out.println("background.wav not found"); return; }
+                AudioInputStream ais = AudioSystem.getAudioInputStream(musicUrl);
+                Clip clip = AudioSystem.getClip();
+                clip.open(ais);
+                backgroundMusicClip = clip;
+                clip.start();
+                startMusicLoopThread(clip);
+            }
         } catch (Exception ex) { System.out.println("Music error: " + ex); }
     }
 
@@ -445,11 +449,15 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     }
     // almost the end of me 
     private void stopBackgroundMusic() {
-        Clip clip = backgroundMusicClip;
-        backgroundMusicClip = null;
-        if (clip != null) {
-            clip.stop();
-            clip.close();
+        if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                System.out.println("STOP_background");
+        } else {
+            Clip clip = backgroundMusicClip;
+            backgroundMusicClip = null;
+            if (clip != null) {
+                clip.stop();
+                clip.close();
+            }
         }
     }
 
@@ -1104,31 +1112,39 @@ public class YahtzeeDesign extends javax.swing.JFrame {
             die1.setEnabled(true); die2.setEnabled(true); die3.setEnabled(true);
             die4.setEnabled(true); die5.setEnabled(true);
         }
-        try
-        {
+        try {
             if (soundEffectsOn) {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/DiceRoll.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
+                if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                    System.out.println("PLAY_DiceRoll");
+                } else {
+                    // Running as normal Java app → use Java Sound API
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                        getClass().getResource("/sounds/DiceRoll.wav"));
+
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioInput);
+                    clip.start();
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        catch (Exception e)
-        {
-            System.out.println(e);
-        }
-        try
-        {
+        try {
             if (soundEffectsOn) {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
+                if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                    System.out.println("PLAY_Click");
+                } else {
+                    // Running as normal Java app → use Java Sound API
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                        getClass().getResource("/sounds/Click.wav"));
+
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioInput);
+                    clip.start();
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            System.out.println(ex);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
