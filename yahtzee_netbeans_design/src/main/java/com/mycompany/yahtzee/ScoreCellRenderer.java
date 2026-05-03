@@ -32,7 +32,7 @@ public class ScoreCellRenderer extends DefaultTableCellRenderer {
 
     public ScoreCellRenderer(ScoreCard scoreCard) {
         this.scoreCard = scoreCard;
-        setOpaque(false); // we paint everything ourselves
+        setOpaque(false); 
     }
 
     public void setHoveredRow(int row) {
@@ -53,7 +53,6 @@ public class ScoreCellRenderer extends DefaultTableCellRenderer {
         boolean hovered  = (row == hoveredRow);
         boolean possible = !filled && value != null && !value.toString().isEmpty();
 
-        // Background
         if (hovered && !filled) {
             setBackground(BG_HOVER);
         } else if (filled) {
@@ -62,14 +61,12 @@ public class ScoreCellRenderer extends DefaultTableCellRenderer {
             setBackground(BG_BASE);
         }
 
-        // Font scaling
         int rowH = table.getRowHeight();
         int fontSize = (int)(rowH * 0.9f);
         setFont(new Font("Bauhaus 93",
                 filled ? Font.BOLD : Font.PLAIN,
                 fontSize));
 
-        // Foreground
         if (column == 0) {
             setForeground(FG_CATEGORY);
         } else if (filled) {
@@ -80,7 +77,6 @@ public class ScoreCellRenderer extends DefaultTableCellRenderer {
             setForeground(FG_EMPTY);
         }
 
-        // Alignment
         setHorizontalAlignment(column == 0 ? LEFT : CENTER);
 
         return this;
@@ -90,15 +86,12 @@ public class ScoreCellRenderer extends DefaultTableCellRenderer {
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
 
-        // Background
         g2.setColor(getBackground());
         g2.fillRect(0, 0, getWidth(), getHeight());
 
-        // Bottom border
         g2.setColor(BORDER_COLOR);
         g2.fillRect(0, getHeight() - 1, getWidth(), 1);
 
-        // Text anti-aliasing
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                             RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
@@ -108,11 +101,9 @@ public class ScoreCellRenderer extends DefaultTableCellRenderer {
         FontMetrics fm = g2.getFontMetrics();
         String text = getText();
 
-        // Perfect vertical centering (ignores descent padding)
         int ascent = fm.getAscent();
         int y = (getHeight() - ascent) / 2 + ascent;
 
-        // Horizontal alignment
         int x;
         int textWidth = fm.stringWidth(text);
 
