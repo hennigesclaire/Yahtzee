@@ -418,8 +418,17 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private void playSoundEffect(String path) {
         if (!soundEffectsOn) return;
         try {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource(path));
-            Clip clip = AudioSystem.getClip(); clip.open(audioInput); clip.start();
+            if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                    System.out.println("PLAY_Click");
+                } else {
+                    
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                        getClass().getResource(path));
+
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioInput);
+                    clip.start();
+                }
         } catch (Exception ex) { System.out.println(ex); }
     }
 
