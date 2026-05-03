@@ -125,9 +125,9 @@ public class YahtzeeDesign extends javax.swing.JFrame {
         loadDiceFont();
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        setSize(screen.width, screen.height);
-        setLocationRelativeTo(null);
         buildComponents();
+        this.setSize(screen.width, screen.height);
+        setLocationRelativeTo(null);
         wireScoreCard();
         animateLeaderboard(() -> {}); 
         checkAndPlayAITurn();
@@ -1117,7 +1117,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
                     System.out.println("PLAY_DiceRoll");
                 } else {
-                    // Running as normal Java app → use Java Sound API
+                    
                     AudioInputStream audioInput = AudioSystem.getAudioInputStream(
                         getClass().getResource("/sounds/DiceRoll.wav"));
 
@@ -1134,7 +1134,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
                 if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
                     System.out.println("PLAY_Click");
                 } else {
-                    // Running as normal Java app → use Java Sound API
+                    
                     AudioInputStream audioInput = AudioSystem.getAudioInputStream(
                         getClass().getResource("/sounds/Click.wav"));
 
@@ -1262,9 +1262,9 @@ class HelpPage extends javax.swing.JFrame {
         this.gameRef = gameRef;
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        buildUI();
         setSize(screen.width, screen.height);
         setLocationRelativeTo(null);
-        buildUI();
     }
 
     private Font helpFont(float size) {

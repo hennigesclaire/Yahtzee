@@ -32,9 +32,9 @@ public class EndPage extends javax.swing.JFrame {
         this.tm = tm;
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        setSize(screen.width, screen.height);
-        setLocationRelativeTo(null);
         buildUI();
+        this.setSize(screen.width, screen.height);
+        setLocationRelativeTo(null);
 
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override public void componentResized(java.awt.event.ComponentEvent e) { layoutComponents(); }

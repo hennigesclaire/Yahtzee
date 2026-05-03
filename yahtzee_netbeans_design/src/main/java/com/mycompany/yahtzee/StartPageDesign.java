@@ -72,9 +72,11 @@ public StartPageDesign() {
     UIManager.put("Slider.thumb", new Color(230, 120, 40));
     this.tm = new TurnManager();                         
     Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-    setSize(screen.width, screen.height);
-    setLocationRelativeTo(null);
+    System.out.println(screen);
+    this.setSize(screen.width, screen.height);
     initComponents();
+    this.setSize(screen.width, screen.height);
+    setLocationRelativeTo(null);
     initSlots();
     jPanel2.setLayout(null);
     jPanel1.setLayout(null);
@@ -623,7 +625,7 @@ private void layoutComponents() {
                     if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
                         System.out.println("PLAY_Click");
                     } else {
-                        // Running as normal Java app → use Java Sound API
+                        
                         AudioInputStream audioInput = AudioSystem.getAudioInputStream(
                             getClass().getResource("/sounds/Click.wav"));
 
@@ -766,7 +768,7 @@ private void layoutComponents() {
             if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
                 System.out.println("PLAY_Click");
             } else {
-                // Running as normal Java app → use Java Sound API
+                
                 AudioInputStream audioInput = AudioSystem.getAudioInputStream(
                     getClass().getResource("/sounds/Click.wav"));
 
@@ -797,7 +799,7 @@ private void layoutComponents() {
             if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
                 System.out.println("PLAY_Click");
             } else {
-                // Running as normal Java app → use Java Sound API
+                
                 AudioInputStream audioInput = AudioSystem.getAudioInputStream(
                     getClass().getResource("/sounds/Click.wav"));
 
@@ -822,7 +824,7 @@ private void layoutComponents() {
             if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
                 System.out.println("PLAY_Click");
             } else {
-                // Running as normal Java app → use Java Sound API
+                
                 AudioInputStream audioInput = AudioSystem.getAudioInputStream(
                     getClass().getResource("/sounds/Click.wav"));
 
