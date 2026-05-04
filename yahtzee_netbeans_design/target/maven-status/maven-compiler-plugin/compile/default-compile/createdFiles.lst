@@ -14,7 +14,6 @@ com\mycompany\yahtzee\StartPageDesign$7.class
 com\mycompany\yahtzee\StartPageDesign.class
 com\mycompany\yahtzee\YahtzeeDesign$3.class
 com\mycompany\yahtzee\Category.class
-com\mycompany\yahtzee\MediumYahtzeeAI.class
 com\mycompany\yahtzee\YahtzeeDesign$1.class
 com\mycompany\yahtzee\CircularLinkedList$Node.class
 com\mycompany\yahtzee\StartPageDesign$AIPlayerComponents.class
@@ -39,6 +38,7 @@ com\mycompany\yahtzee\Interface.class
 com\mycompany\yahtzee\ArchPanel.class
 com\mycompany\yahtzee\YahtzeeDesign$6.class
 com\mycompany\yahtzee\CircularLinkedList.class
+com\mycompany\yahtzee\HardYahtzeeAI.class
 com\mycompany\yahtzee\HelpPage$3.class
 com\mycompany\yahtzee\GlassPanel.class
 com\mycompany\yahtzee\AIStartPage$4.class
