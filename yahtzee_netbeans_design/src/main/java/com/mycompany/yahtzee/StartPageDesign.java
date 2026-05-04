@@ -276,24 +276,6 @@ private void layoutComponents() {
     }
 }
 
-    private static class AIPlayerComponents {
-        JTextField nameField;
-        JSlider difficultySlider;
-
-        public AIPlayerComponents(JTextField nameField, JSlider difficultySlider) {
-            this.nameField = nameField;
-            this.difficultySlider = difficultySlider;
-        }
-
-        public String getName() {
-            return nameField.getText();
-        }
-
-        public String getDifficulty() {
-            return difficultySlider.getValue() == 0 ? "Easy" : "Hard";
-        }
-    }
-    
         private void updateButtonState() {
         boolean full = playerCount >= 6;
         PlayerButton.setEnabled(!full);
@@ -574,8 +556,6 @@ private void layoutComponents() {
 
 
     @SuppressWarnings("unchecked")
-    // DONT EDIT PLEASSSSE
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
 
         jPanel6 = new javax.swing.JPanel();
@@ -730,7 +710,7 @@ private void layoutComponents() {
         );
 
         pack();
-    }// </editor-fold>                        
+    }                        
 
     private void StartButtonActionPerformed(java.awt.event.ActionEvent evt) {                                            
 
@@ -850,12 +830,12 @@ private void layoutComponents() {
 	private RoundedButton PlayerButton;
 	private RoundedButton AI_PlayerButton;
 	private RoundedButton StartButton;
-	private OutlinedLabel Title;
-    private javax.swing.JLayeredPane jLayeredPane1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private GlassPanel jPanel3;
-    private javax.swing.JPanel jPanel6;
+        private OutlinedLabel Title;
+        private javax.swing.JLayeredPane jLayeredPane1;
+        private javax.swing.JPanel jPanel1;
+        private javax.swing.JPanel jPanel2;
+        private GlassPanel jPanel3;
+        private javax.swing.JPanel jPanel6;
     // End of variables declaration                   
 }
 
@@ -938,6 +918,10 @@ class ThemedSliderUI extends BasicSliderUI {
     @Override
     protected Dimension getThumbSize() {
         return new Dimension(24, 24);
+    }
+    @Override
+    public void paintFocus(Graphics g) {
+        // suppress focus rectangle
     }
 }
 

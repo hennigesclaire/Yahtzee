@@ -209,7 +209,6 @@ public class EndPage extends javax.swing.JFrame {
         winnerNameLabel.setFont(uiFont(Math.max((int)(H * 0.028f), (int)(wnH * 0.68f))));
         winnerNameLabel.setBounds(sideInset, wnY, innerW, wnH);
 
-        int playerCount = (tm != null && tm.getPlayers() != null) ? tm.getPlayers().size() : 1;
         int lbPad    = (int)(W * 0.012);
         int lbTitleH = Math.max((int)(H * 0.030), (int)(H * 0.055));
         rowSlotH = Math.max((int)(H * 0.045), (int)(H * 0.070));

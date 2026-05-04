@@ -43,17 +43,6 @@ import java.awt.Toolkit;
 public class YahtzeeDesign extends javax.swing.JFrame {
 
     Dice[] dice = {new Dice(), new Dice(), new Dice(), new Dice(), new Dice()};
-    private Font diceFont = null;
-//    private void loadDiceFont() {
-//        try {
-//            InputStream is = YahtzeeDesign.class.getResourceAsStream("/fonts/yahtzee-dice.ttf");
-//            if (is == null) throw new RuntimeException("Dice font not found");
-//            diceFont = Font.createFont(Font.TRUETYPE_FONT, is);
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//            diceFont = new Font("Serif", Font.PLAIN, 36);
-//        }
-//    }
     boolean[] holding = {false, false, false, false, false};
     private ScoreCard scoreCard;
     private ScoreCardTableModel upperModel;
@@ -68,7 +57,7 @@ public class YahtzeeDesign extends javax.swing.JFrame {
     private TurnManager t = null;
     private java.util.function.Consumer<Float> panelFlipper = p -> {};
     private volatile boolean aiCancelled = false;
-private volatile int aiGeneration = 0; 
+    private volatile int aiGeneration = 0; 
     private boolean soundEffectsOn = true;
     private volatile boolean musicOn = true;
     private volatile Clip backgroundMusicClip = null;
@@ -78,8 +67,6 @@ private volatile int aiGeneration = 0;
     private boolean menuOpen = false;
     private volatile boolean aiSpeedUp = false;
     private java.util.Map<Integer, Integer> previousRanks = new java.util.HashMap<>();
-    private java.util.Map<Integer, JPanel> existingRows = new java.util.HashMap<>();
-    private java.util.Map<Integer, JLabel> scoreLabels = new java.util.HashMap<>();
     public static final Category[] UPPER = {
         Category.ONES, Category.TWOS, Category.THREES, Category.FOURS,
         Category.FIVES, Category.SIXES
@@ -124,7 +111,6 @@ private volatile int aiGeneration = 0;
     public YahtzeeDesign(TurnManager t) {
         this.t = t;
         t.resetRolls();
-//        loadDiceFont();
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         buildComponents();
@@ -133,14 +119,7 @@ private volatile int aiGeneration = 0;
         wireScoreCard();
         animateLeaderboard(() -> {}); 
         checkAndPlayAITurn();
-//        Clip spClip = StartPageDesign.startPageMusicClip;
-//        StartPageDesign.startPageMusicClip = null;
-//        if (spClip != null) {
-//            backgroundMusicClip = spClip;
-//            startMusicLoopThread(spClip);
-//        } else {
-            new Thread(this::startBackgroundMusic).start();
-//        }
+        new Thread(this::startBackgroundMusic).start();
         jLayeredPane1.addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override public void componentResized(java.awt.event.ComponentEvent e) { layoutComponents(); }
         });
@@ -425,16 +404,15 @@ private volatile int aiGeneration = 0;
         if (!soundEffectsOn) return;
         try {
             if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
-                    System.out.println("PLAY_Click");
-                } else {
-                    
-                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(
-                        getClass().getResource(path));
-
-                    Clip clip = AudioSystem.getClip();
-                    clip.open(audioInput);
-                    clip.start();
-                }
+                if (path.contains("DiceRoll")) System.out.println("PLAY_DiceRoll");
+                else System.out.println("PLAY_Click");
+            } else {
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                    getClass().getResource(path));
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start();
+            }
         } catch (Exception ex) { System.out.println(ex); }
     }
 
@@ -472,7 +450,6 @@ private volatile int aiGeneration = 0;
         loopThread.setDaemon(true);
         loopThread.start();
     }
-    // almost the end of me 
     private void stopBackgroundMusic() {
         if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
                 System.out.println("STOP_background");
@@ -568,7 +545,6 @@ private volatile int aiGeneration = 0;
         leaderboardTitle.setFont(uiFont(Math.max(13f, titleH * 0.62f)));
         leaderboardTitle.setBounds(lbPad, lbPad, lbW - lbPad * 2, titleH);
         leaderboardList.setBounds(lbPad, lbPad + titleH + 4, lbW - lbPad * 2, 6 * rowSlotH);
-        refreshLeaderboard();
 
         jPanel2.setBounds(combX, iT, combW, contentH);
         {
@@ -646,7 +622,6 @@ private volatile int aiGeneration = 0;
             dLabels[i].setBounds(dieX, labelYd, diceSize, labelHt);
             dLabels[i].setFont(uiFont(Math.max(8f, diceStripH * 0.10f)));
             dBtns[i].setBounds(dieX, diceY2, diceSize, diceSize);
-            if (diceFont != null) dBtns[i].setFont(diceFont.deriveFont((float) diceSize * 0.60f));
         }
         int rollH = (int)(diceStripH * 0.52);
         int rollY = diceStripY + diceY2 + (diceStripH - diceY2 - rollH) / 2;
@@ -672,7 +647,6 @@ private volatile int aiGeneration = 0;
         summaryBonusVal.setForeground(bonus > 0 ? new Color(0, 140, 0) : Color.BLACK);
         summaryLowerVal.setText(String.valueOf(lower));
         summaryTotalVal.setText(String.valueOf(total));
-        refreshLeaderboard();
         summaryPanel.repaint();
     }
 
@@ -823,18 +797,22 @@ private volatile int aiGeneration = 0;
             try {
                 YahtzeeAI brain = ai.getStrategy();
                 if (aiCancelled || aiGeneration != myGen) return;
-                Thread.sleep(aiSpeedUp ? 100 : 1000);
+                Thread.sleep(aiSpeedUp ? 50 : 1000);
+
+                if (aiSpeedUp && soundEffectsOn) {
+                    playSoundEffect("/sounds/DiceRoll.wav");
+                }
 
                 if (aiCancelled || aiGeneration != myGen) return;
                 java.awt.EventQueue.invokeLater(() -> {
                     if (aiCancelled || aiGeneration != myGen) return;
                     performManualRoll();
                 });
-                Thread.sleep(aiSpeedUp ? 100 : 500);
+                Thread.sleep(aiSpeedUp ? 50 : 500);
 
                 while (this.t.getRolls() > 0) {
                     if (aiCancelled || aiGeneration != myGen) return;
-                    Thread.sleep(aiSpeedUp ? 150 : 1500);
+                    Thread.sleep(aiSpeedUp ? 75 : 1500);
                     if (aiCancelled || aiGeneration != myGen) return;
 
                     int rollsRemaining = this.t.getRolls();
@@ -848,11 +826,11 @@ private volatile int aiGeneration = 0;
                         updateHoldLabels();
                         performManualRoll();
                     });
-                    Thread.sleep(aiSpeedUp ? 100 : 500);
+                    Thread.sleep(aiSpeedUp ? 50 : 500);
                 }
 
                 if (aiCancelled || aiGeneration != myGen) return;
-                Thread.sleep(aiSpeedUp ? 150 : 1500);
+                Thread.sleep(aiSpeedUp ? 75 : 1500);
                 if (aiCancelled || aiGeneration != myGen) return;
 
                 int[] currentVals = this.t.getDiceFromInterface();
@@ -1120,44 +1098,6 @@ private volatile int aiGeneration = 0;
 
         timer.start();
     }
-   private void refreshLeaderboard() {
-    if (t == null) return;
-
-    java.util.List<Player> players = t.getPlayers();
-    java.util.List<ScoreCard> cards = t.getScoreCards();
-
-    for (int i = 0; i < players.size(); i++) {
-
-        if (!existingRows.containsKey(i)) {
-
-            JPanel row = new JPanel(new BorderLayout(6, 0));
-            row.setOpaque(false);
-            row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-            row.setBorder(BorderFactory.createEmptyBorder(4, 2, 4, 2));
-
-            JLabel icon = new JLabel();
-            icon.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 22));
-            icon.setForeground(new Color(200, 80, 20));
-            icon.setPreferredSize(new Dimension(30, 30));
-
-            JLabel name = new JLabel(players.get(i).getUsername());
-            name.setFont(uiFont(18f));
-            name.setForeground(Color.BLACK);
-
-            JLabel score = new JLabel("0");
-            score.setFont(uiFont(18f));
-            score.setForeground(new Color(100, 50, 0));
-            score.setHorizontalAlignment(SwingConstants.RIGHT);
-
-            row.add(icon, BorderLayout.WEST);
-            row.add(name, BorderLayout.CENTER);
-            row.add(score, BorderLayout.EAST);
-
-            existingRows.put(i, row);
-            scoreLabels.put(i, score);
-        }
-    }
-}
     private void performManualRoll() { jButton1ActionPerformed(null); }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -1184,39 +1124,39 @@ private volatile int aiGeneration = 0;
             die1.setEnabled(true); die2.setEnabled(true); die3.setEnabled(true);
             die4.setEnabled(true); die5.setEnabled(true);
         }
-        try {
-            if (soundEffectsOn) {
-                if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
-                    System.out.println("PLAY_DiceRoll");
-                } else {
-                    
-                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(
-                        getClass().getResource("/sounds/DiceRoll.wav"));
-
-                    Clip clip = AudioSystem.getClip();
-                    clip.open(audioInput);
-                    clip.start();
+        if (!aiSpeedRoll) {
+            try {
+                if (soundEffectsOn) {
+                    if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                        System.out.println("PLAY_DiceRoll");
+                    } else {
+                        AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                            getClass().getResource("/sounds/DiceRoll.wav"));
+                        Clip clip = AudioSystem.getClip();
+                        clip.open(audioInput);
+                        clip.start();
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        try {
-            if (soundEffectsOn) {
-                if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
-                    System.out.println("PLAY_Click");
-                } else {
-                    
-                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(
-                        getClass().getResource("/sounds/Click.wav"));
-
-                    Clip clip = AudioSystem.getClip();
-                    clip.open(audioInput);
-                    clip.start();
+        if (!aiSpeedRoll) {
+            try {
+                if (soundEffectsOn) {
+                    if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                        System.out.println("PLAY_Click");
+                    } else {
+                        AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                            getClass().getResource("/sounds/Click.wav"));
+                        Clip clip = AudioSystem.getClip();
+                        clip.open(audioInput);
+                        clip.start();
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -1502,42 +1442,4 @@ class HelpPage extends javax.swing.JFrame {
         pack();
     }
 
-    @SuppressWarnings("unused")
-    private javax.swing.JPanel buildSectionPanel(String title, String[] cols, String[][] rows, String note) {
-        javax.swing.JPanel panel = new javax.swing.JPanel(new BorderLayout(0, 4));
-        panel.setOpaque(false);
-
-        javax.swing.JLabel hdr = new javax.swing.JLabel("\u25B6  " + title);
-        hdr.setFont(helpFont(22));
-        hdr.setForeground(new Color(180, 30, 30));
-        panel.add(hdr, BorderLayout.NORTH);
-
-        javax.swing.JTable tbl2 = new javax.swing.JTable(rows, cols) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
-        tbl2.setFont(new Font("Bauhaus 93", Font.PLAIN, 15));
-        tbl2.setForeground(new Color(50, 20, 0));
-        tbl2.setBackground(new Color(255, 248, 210));
-        tbl2.setGridColor(new Color(200, 160, 60));
-        tbl2.setRowHeight(28);
-        tbl2.setShowGrid(true);
-        tbl2.getTableHeader().setFont(helpFont(15));
-        tbl2.getTableHeader().setBackground(new Color(210, 140, 30));
-        tbl2.getTableHeader().setForeground(Color.WHITE);
-        tbl2.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-        javax.swing.JScrollPane sp = new javax.swing.JScrollPane(tbl2);
-        sp.setBorder(BorderFactory.createLineBorder(new Color(180, 140, 50), 1));
-        sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-        sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        sp.getViewport().setOpaque(false); sp.setOpaque(false);
-        panel.add(sp, BorderLayout.CENTER);
-
-        if (note != null) {
-            javax.swing.JLabel noteLbl = new javax.swing.JLabel("<html><i>" + note + "</i></html>");
-            noteLbl.setFont(new Font("Bauhaus 93", Font.ITALIC, 14));
-            noteLbl.setForeground(new Color(100, 60, 0));
-            panel.add(noteLbl, BorderLayout.SOUTH);
-        }
-        return panel;
-    }
 }
