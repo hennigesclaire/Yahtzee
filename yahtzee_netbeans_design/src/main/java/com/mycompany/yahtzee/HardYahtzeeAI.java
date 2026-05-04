@@ -3,14 +3,14 @@ package com.mycompany.yahtzee;
 import java.util.*;
 
 /*
- Medium AI - Adds strategic awareness and filtering:
+ Hard AI - Adds strategic awareness and filtering:
  Prioritizes upper section bonus (needs 63+ for 35 point bonus)
  Uses strategic filters for category selection
  Reduced trial counts for faster decisions
  Considers game position and remaining categories
  */
 
-public class MediumYahtzeeAI implements YahtzeeAI{
+public class HardYahtzeeAI implements YahtzeeAI{
     private static final int TRIALS = 1000; 
     private static final Category[] PLAYABLE = {
         Category.ONES, Category.TWOS, Category.THREES,

@@ -762,7 +762,7 @@ private void layoutComponents() {
                     String aiName = (total > 1) ? base + " " + pos : base;
                     AIPlayer ai = new AIPlayer(idCounter++);
                     ai.setUsername(aiName);
-                    ai.setStrategy(isEasy ? new EasyYahtzeeAI() : new MediumYahtzeeAI());
+                    ai.setStrategy(isEasy ? new EasyYahtzeeAI() : new HardYahtzeeAI());
                     tm.addPlayer(ai);
                 }
             } else {
