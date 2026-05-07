@@ -32,8 +32,10 @@ public class EndPage extends javax.swing.JFrame {
     public EndPage(TurnManager tm) {
         this.tm = tm;
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         buildUI();
+        this.setSize(screen.width, screen.height);
+        setLocationRelativeTo(null);
 
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override public void componentResized(java.awt.event.ComponentEvent e) { layoutComponents(); }
@@ -102,7 +104,9 @@ public class EndPage extends javax.swing.JFrame {
         playAgainButton.setFont(uiFont(28f));
         playAgainButton.addActionListener(e -> {
             StartPageDesign sp = new StartPageDesign();
-            sp.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+            setSize(screen.width, screen.height);
+            setLocationRelativeTo(null);
             sp.setVisible(true);
             this.setVisible(false);
             dispose();
@@ -205,7 +209,6 @@ public class EndPage extends javax.swing.JFrame {
         winnerNameLabel.setFont(uiFont(Math.max((int)(H * 0.028f), (int)(wnH * 0.68f))));
         winnerNameLabel.setBounds(sideInset, wnY, innerW, wnH);
 
-        int playerCount = (tm != null && tm.getPlayers() != null) ? tm.getPlayers().size() : 1;
         int lbPad    = (int)(W * 0.012);
         int lbTitleH = Math.max((int)(H * 0.030), (int)(H * 0.055));
         rowSlotH = Math.max((int)(H * 0.045), (int)(H * 0.070));

@@ -24,18 +24,8 @@ public class Player {
         scores = new ScoreCard();
         complete = false;
     }
-    
-    /*
-    public Dice[] rollDice()
-    {
-        Dice[] ds = new Dice[5];
-        for (Dice d : ds) {
-            d.roll();
-        }
-        return ds;
-    }
-    */
-        public Dice[] rollDice() {
+   
+     public Dice[] rollDice() {
         Dice[] ds = new Dice[5];
         for (int i = 0; i < ds.length; i++) {
             ds[i] = new Dice();

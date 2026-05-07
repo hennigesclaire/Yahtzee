@@ -19,6 +19,7 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Toolkit;
 
 
 import javax.swing.BorderFactory;
@@ -69,8 +70,12 @@ public StartPageDesign() {
     UIManager.put("Slider.foreground", new Color(230, 120, 40));
     UIManager.put("Slider.thumb", new Color(230, 120, 40));
     this.tm = new TurnManager();                         
-    setExtendedState(JFrame.MAXIMIZED_BOTH);
+    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+    System.out.println(screen);
+    this.setSize(screen.width, screen.height);
     initComponents();
+    this.setSize(screen.width, screen.height);
+    setLocationRelativeTo(null);
     initSlots();
     jPanel2.setLayout(null);
     jPanel1.setLayout(null);
@@ -271,24 +276,6 @@ private void layoutComponents() {
     }
 }
 
-    private static class AIPlayerComponents {
-        JTextField nameField;
-        JSlider difficultySlider;
-
-        public AIPlayerComponents(JTextField nameField, JSlider difficultySlider) {
-            this.nameField = nameField;
-            this.difficultySlider = difficultySlider;
-        }
-
-        public String getName() {
-            return nameField.getText();
-        }
-
-        public String getDifficulty() {
-            return difficultySlider.getValue() == 0 ? "Easy" : "Hard";
-        }
-    }
-    
         private void updateButtonState() {
         boolean full = playerCount >= 6;
         PlayerButton.setEnabled(!full);
@@ -569,8 +556,6 @@ private void layoutComponents() {
 
 
     @SuppressWarnings("unchecked")
-    // DONT EDIT PLEASSSSE
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
 
         jPanel6 = new javax.swing.JPanel();
@@ -617,16 +602,20 @@ private void layoutComponents() {
         PlayerButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 PlayerButtonActionPerformed(evt);
-                try
-                {
-                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-                    Clip clip = AudioSystem.getClip();
-                    clip.open(audioInput);
-                    clip.start();
-                }
-                catch (Exception e)
-                {
-                    System.out.println(e);
+                try {
+                    if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                        System.out.println("PLAY_Click");
+                    } else {
+                        
+                        AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                            getClass().getResource("/sounds/Click.wav"));
+
+                        Clip clip = AudioSystem.getClip();
+                        clip.open(audioInput);
+                        clip.start();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -721,7 +710,7 @@ private void layoutComponents() {
         );
 
         pack();
-    }// </editor-fold>                        
+    }                        
 
     private void StartButtonActionPerformed(java.awt.event.ActionEvent evt) {                                            
 
@@ -753,7 +742,7 @@ private void layoutComponents() {
                     String aiName = (total > 1) ? base + " " + pos : base;
                     AIPlayer ai = new AIPlayer(idCounter++);
                     ai.setUsername(aiName);
-                    ai.setStrategy(isEasy ? new EasyYahtzeeAI() : new MediumYahtzeeAI());
+                    ai.setStrategy(isEasy ? new EasyYahtzeeAI() : new HardYahtzeeAI());
                     tm.addPlayer(ai);
                 }
             } else {
@@ -764,20 +753,26 @@ private void layoutComponents() {
                 }
             }
         }
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception e)
-        {
-            System.out.println(e);
+        try {
+            if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                System.out.println("PLAY_Click");
+            } else {
+                
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                    getClass().getResource("/sounds/Click.wav"));
+
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         YahtzeeDesign y = new YahtzeeDesign(tm);
         y.setVisible(true);
-        y.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        setSize(screen.width, screen.height);
+        setLocationRelativeTo(null);
         this.setVisible(false);
     }                                           
 
@@ -789,16 +784,20 @@ private void layoutComponents() {
         updateButtonState();
         refreshAILabels();
         SwingUtilities.invokeLater(() -> layoutComponents());
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception e)
-        {
-            System.out.println(e);
+        try {
+            if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                System.out.println("PLAY_Click");
+            } else {
+                
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                    getClass().getResource("/sounds/Click.wav"));
+
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }                                               
 
@@ -810,16 +809,20 @@ private void layoutComponents() {
         updateButtonState();
         refreshHumanLabels();
         SwingUtilities.invokeLater(() -> layoutComponents());
-        try
-        {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/Click.wav"));
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInput);
-            clip.start();
-        }
-        catch (Exception e)
-        {
-            System.out.println(e);
+        try {
+            if (System.getProperty("java.vendor").contains("Leaning Technologies Ltd")) {
+                System.out.println("PLAY_Click");
+            } else {
+                
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(
+                    getClass().getResource("/sounds/Click.wav"));
+
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }                                            
 
@@ -827,12 +830,12 @@ private void layoutComponents() {
 	private RoundedButton PlayerButton;
 	private RoundedButton AI_PlayerButton;
 	private RoundedButton StartButton;
-	private OutlinedLabel Title;
-    private javax.swing.JLayeredPane jLayeredPane1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private GlassPanel jPanel3;
-    private javax.swing.JPanel jPanel6;
+        private OutlinedLabel Title;
+        private javax.swing.JLayeredPane jLayeredPane1;
+        private javax.swing.JPanel jPanel1;
+        private javax.swing.JPanel jPanel2;
+        private GlassPanel jPanel3;
+        private javax.swing.JPanel jPanel6;
     // End of variables declaration                   
 }
 
@@ -915,6 +918,10 @@ class ThemedSliderUI extends BasicSliderUI {
     @Override
     protected Dimension getThumbSize() {
         return new Dimension(24, 24);
+    }
+    @Override
+    public void paintFocus(Graphics g) {
+        // suppress focus rectangle
     }
 }
 
